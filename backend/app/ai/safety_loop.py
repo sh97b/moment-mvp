@@ -4,6 +4,7 @@ from backend.app.ai.risk_engine import (
     CAUTION,
     DANGER,
     determine_initial_risk,
+    get_effective_abnormal_count,
 )
 
 
@@ -57,9 +58,9 @@ class SafetyLoop:
             "revisit_15min"
         ]
 
-        abnormal_count = prediction[
-            "abnormal_feature_count"
-        ]
+        abnormal_count = get_effective_abnormal_count(
+        prediction
+        )
 
 
         # =====================================

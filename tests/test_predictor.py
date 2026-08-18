@@ -28,3 +28,29 @@ def test_abnormal_feature_count(
         result["abnormal_feature_count"]
         == expected_count
     )
+
+
+def test_model_load_failure_uses_rule_fallback(
+    monkeypatch,
+):
+    from backend.app.ai import predictor
+
+    # joblib.load가 실패하는 상황을 강제로 만든다.
+    def mock_load_failure(*args, **kwargs):
+        raise OSError("model load failed")
+
+    monkeypatch.setattr(
+        predictor.joblib,
+        "load",
+        mock_load_failure,
+    )
+
+    # 모델 로딩 함수 실행
+    model, metadata, model_mode = (
+        predictor.load_model_and_metadata()
+    )
+
+    # fallback이 제대로 적용되는지 확인
+    assert model is None
+    assert metadata == {}
+    assert model_mode == "rule_fallback"

@@ -8,31 +8,81 @@ CAUTION = 2
 DANGER = 3
 
 
-def determine_initial_risk(
+def get_effective_abnormal_count(
     prediction: dict,
 ) -> int:
     """
-    현재 한 시점의 Feature 이상 개수로
-    초기 위험 단계를 판단한다.
+    최종 위험 판단에 실제로 사용할
+    이상 Feature 개수를 반환한다.
 
-    이상 Feature 0개 -> 0단계 정상
-    이상 Feature 1개 -> 1단계 관심
-    이상 Feature 2개 -> 2단계 주의
+    Isolation Forest 사용 시:
+    - is_unusual=True일 때만 Feature 이상을 인정한다.
+    - is_unusual=False이면 정상으로 처리한다.
 
-    3단계 위험은 Safety Loop에서 별도로 판단한다.
+    Rule fallback 사용 시:
+    - Isolation Forest 결과가 없으므로
+      Feature Rule만 사용한다.
     """
 
     abnormal_count = prediction[
         "abnormal_feature_count"
     ]
 
-    # 방향전환 + 재방문 둘 다 이상
+    model_mode = prediction.get(
+        "model_mode",
+        "isolation_forest",
+    )
+
+    # -------------------------------------
+    # Rule fallback
+    # -------------------------------------
+
+    if model_mode == "rule_fallback":
+        return abnormal_count
+
+
+    # -------------------------------------
+    # Isolation Forest 사용
+    # -------------------------------------
+
+    is_unusual = prediction.get(
+        "is_unusual"
+    )
+
+    # Isolation Forest가 평소와 다르다고
+    # 판단한 경우에만 Feature 이상을 인정
+    if is_unusual is True:
+        return abnormal_count
+
+    # Feature Rule에는 걸렸지만
+    # Isolation Forest에서는 특이하지 않음
+    return 0
+
+
+def determine_initial_risk(
+    prediction: dict,
+) -> int:
+    """
+    현재 한 시점의 유효 이상 Feature 개수를
+    기반으로 초기 위험 단계를 판단한다.
+
+    0개 -> 정상
+    1개 -> 관심
+    2개 -> 주의
+
+    3단계 위험은 Safety Loop에서 판단한다.
+    """
+
+    abnormal_count = (
+        get_effective_abnormal_count(
+            prediction
+        )
+    )
+
     if abnormal_count == 2:
         return CAUTION
 
-    # 방향전환 또는 재방문 중 하나만 이상
     if abnormal_count == 1:
         return INTEREST
 
-    # 둘 다 정상
     return NORMAL

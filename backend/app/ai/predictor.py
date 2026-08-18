@@ -35,28 +35,46 @@ FALLBACK_REVISIT_NORMAL_MAX = 1
 # 모델 / Metadata 로드
 # =========================================
 
-model = None
-metadata = {}
+def load_model_and_metadata():
+    """
+    Isolation Forest 모델과 metadata를 로드한다.
 
-MODEL_MODE = "rule_fallback"
+    로드에 실패하면 예외를 외부로 던지지 않고
+    Rule fallback 상태를 반환한다.
+    """
 
-try:
-    model = joblib.load(MODEL_PATH)
+    try:
+        loaded_model = joblib.load(MODEL_PATH)
 
-    with open(
-        META_PATH,
-        "r",
-        encoding="utf-8",
-    ) as f:
-        metadata = json.load(f)
+        with open(
+            META_PATH,
+            "r",
+            encoding="utf-8",
+        ) as f:
+            loaded_metadata = json.load(f)
 
-    MODEL_MODE = "isolation_forest"
+        return (
+            loaded_model,
+            loaded_metadata,
+            "isolation_forest",
+        )
 
-except Exception as e:
-    print(
-        "[AI WARNING] Isolation Forest 로드 실패. "
-        f"Rule fallback을 사용합니다: {e}"
-    )
+    except Exception as e:
+        print(
+            "[AI WARNING] Isolation Forest 로드 실패. "
+            f"Rule fallback을 사용합니다: {e}"
+        )
+
+        return (
+            None,
+            {},
+            "rule_fallback",
+        )
+
+
+model, metadata, MODEL_MODE = (
+    load_model_and_metadata()
+)
 
 
 FEATURE_COLUMNS = metadata.get(
