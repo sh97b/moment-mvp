@@ -1,6 +1,8 @@
 from google import genai
 from google.genai import types
 
+from google.genai import errors
+
 from backend.app.ai.context.prompts import (
     ROUTINE_PARSE_PROMPT,
 )
@@ -21,7 +23,7 @@ MODEL_NAME = "gemini-3.6-flash"
 # Gemini Client
 # =========================================
 
-client = genai.Client()
+
 
 
 # =========================================
@@ -64,15 +66,30 @@ def parse_routine_text(
     # 3. Gemini 호출
     # -------------------------------------
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=ParsedRoutineContext,
-            temperature=0,
-        ),
-    )
+    try:
+        client = genai.Client()
+
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=user_prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=ParsedRoutineContext,
+                temperature=0,
+            ),
+        )
+
+    except errors.APIError as e:
+        raise RuntimeError(
+            f"Gemini 생활패턴 파싱에 실패했습니다. "
+            f"status={e.code}"
+        ) from e
+
+    except ValueError as e:
+        raise RuntimeError(
+            "Gemini API 설정을 확인해주세요. "
+            "GEMINI_API_KEY가 필요합니다."
+        ) from e
 
 
     # -------------------------------------
