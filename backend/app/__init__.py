@@ -1,0 +1,1 @@
+"""MOMENT FastAPI application package."""
