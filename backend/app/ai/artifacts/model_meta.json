@@ -18,6 +18,9 @@
     "contamination": "auto",
     "random_state": 42
   },
+  "library_versions": {
+    "scikit_learn": "1.9.0"
+  },
   "training_info": {
     "train_routes": 80,
     "validation_routes": 20,

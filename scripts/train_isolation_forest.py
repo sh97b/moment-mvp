@@ -5,6 +5,8 @@ import joblib
 import numpy as np
 import pandas as pd
 
+import sklearn
+
 from sklearn.ensemble import IsolationForest
 from sklearn.model_selection import train_test_split
 
@@ -275,37 +277,41 @@ def main():
     # -----------------------------------------
 
     metadata = {
-        "features": FEATURE_COLUMNS,
+    "features": FEATURE_COLUMNS,
 
-        "normal_feature_max": {
-            "turn_10min": turn_normal_max,
-            "revisit_15min": revisit_normal_max,
-        },
+    "normal_feature_max": {
+        "turn_10min": turn_normal_max,
+        "revisit_15min": revisit_normal_max,
+    },
 
-        "anomaly_score_thresholds": {
-            "p90": float(p90),
-            "p95": float(p95),
-            "p99": float(p99),
-        },
+    "anomaly_score_thresholds": {
+        "p90": float(p90),
+        "p95": float(p95),
+        "p99": float(p99),
+    },
 
-        "model_config": {
-            "n_estimators": 200,
-            "max_samples": "auto",
-            "contamination": "auto",
-            "random_state": 42,
-        },
+    "model_config": {
+        "n_estimators": 200,
+        "max_samples": "auto",
+        "contamination": "auto",
+        "random_state": 42,
+    },
 
-        "training_info": {
-            "train_routes": int(
-                train_df["route_id"].nunique()
-            ),
-            "validation_routes": int(
-                val_df["route_id"].nunique()
-            ),
-            "train_rows": len(train_df),
-            "validation_rows": len(val_df),
-        },
-    }
+    "library_versions": {
+        "scikit_learn": sklearn.__version__,
+    },
+
+    "training_info": {
+        "train_routes": int(
+            train_df["route_id"].nunique()
+        ),
+        "validation_routes": int(
+            val_df["route_id"].nunique()
+        ),
+        "train_rows": len(train_df),
+        "validation_rows": len(val_df),
+    },
+}
 
 
     with open(
