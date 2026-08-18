@@ -6,6 +6,7 @@ import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
 import { readActiveGuardianProfile } from '../../utils/guardianProfile.js'
 
 const DEFAULT_SCENARIO_ID = 'normal'
+const DEMO_SCENARIO_IDS = new Set(['normal', 'temporary_return', 'persistent_anomaly'])
 
 const riskStages = {
   0: {
@@ -67,7 +68,11 @@ export default function SeniorPage() {
     const controller = new AbortController()
 
     getScenarios(controller.signal)
-      .then(({ data }) => setScenarios(Array.isArray(data.scenarios) ? data.scenarios : []))
+      .then(({ data }) => setScenarios(
+        Array.isArray(data.scenarios)
+          ? data.scenarios.filter(({ id }) => DEMO_SCENARIO_IDS.has(id))
+          : [],
+      ))
       .catch((error) => {
         if (error.name !== 'AbortError') setScenarios([])
       })

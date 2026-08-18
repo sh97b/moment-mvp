@@ -4,6 +4,7 @@ import { ApiError, getHealth, getReplay, getScenarios } from '../../api/momentAp
 import GuardianPage from './GuardianPage.jsx'
 
 const DEFAULT_SCENARIO_ID = 'normal'
+const DEMO_SCENARIO_IDS = new Set(['normal', 'temporary_return', 'persistent_anomaly'])
 
 function replayErrorMessage(error) {
   if (!(error instanceof ApiError)) return '재생 데이터를 불러오지 못했습니다.'
@@ -61,7 +62,11 @@ export default function GuardianReplayPage() {
     setScenarioError(null)
 
     getScenarios(controller.signal)
-      .then(({ data }) => setScenarios(Array.isArray(data.scenarios) ? data.scenarios : []))
+      .then(({ data }) => setScenarios(
+        Array.isArray(data.scenarios)
+          ? data.scenarios.filter(({ id }) => DEMO_SCENARIO_IDS.has(id))
+          : [],
+      ))
       .catch((error) => {
         if (error.name !== 'AbortError') setScenarioError(error)
       })
