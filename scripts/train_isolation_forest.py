@@ -1,5 +1,7 @@
 from pathlib import Path
+import json
 
+import joblib
 import numpy as np
 import pandas as pd
 
@@ -18,6 +20,24 @@ BASELINE_PATH = (
     / "data"
     / "processed"
     / "baseline_data.csv"
+)
+
+ARTIFACT_DIR = (
+    ROOT_DIR
+    / "backend"
+    / "app"
+    / "ai"
+    / "artifacts"
+)
+
+MODEL_PATH = (
+    ARTIFACT_DIR
+    / "isolation_forest.joblib"
+)
+
+META_PATH = (
+    ARTIFACT_DIR
+    / "model_meta.json"
 )
 
 
@@ -203,6 +223,112 @@ def main():
             index=False
         )
     )
+
+    # -----------------------------------------
+    # 14. 정상 Baseline Feature 범위 계산
+    # -----------------------------------------
+
+    turn_normal_max = int(
+        X_train["turn_10min"].max()
+    )
+
+    revisit_normal_max = int(
+        X_train["revisit_15min"].max()
+    )
+
+
+    print("\n=== 정상 Baseline Feature 기준 ===")
+
+    print(
+        f"turn_10min 정상 최대값: "
+        f"{turn_normal_max}"
+    )
+
+    print(
+        f"revisit_15min 정상 최대값: "
+        f"{revisit_normal_max}"
+    )
+
+
+    # -----------------------------------------
+    # 15. artifacts 폴더 생성
+    # -----------------------------------------
+
+    ARTIFACT_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+
+    # -----------------------------------------
+    # 16. Isolation Forest 모델 저장
+    # -----------------------------------------
+
+    joblib.dump(
+        model,
+        MODEL_PATH,
+    )
+
+
+    # -----------------------------------------
+    # 17. 모델 Metadata 저장
+    # -----------------------------------------
+
+    metadata = {
+        "features": FEATURE_COLUMNS,
+
+        "normal_feature_max": {
+            "turn_10min": turn_normal_max,
+            "revisit_15min": revisit_normal_max,
+        },
+
+        "anomaly_score_thresholds": {
+            "p90": float(p90),
+            "p95": float(p95),
+            "p99": float(p99),
+        },
+
+        "model_config": {
+            "n_estimators": 200,
+            "max_samples": "auto",
+            "contamination": "auto",
+            "random_state": 42,
+        },
+
+        "training_info": {
+            "train_routes": int(
+                train_df["route_id"].nunique()
+            ),
+            "validation_routes": int(
+                val_df["route_id"].nunique()
+            ),
+            "train_rows": len(train_df),
+            "validation_rows": len(val_df),
+        },
+    }
+
+
+    with open(
+        META_PATH,
+        "w",
+        encoding="utf-8",
+    ) as f:
+        json.dump(
+            metadata,
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+
+    # -----------------------------------------
+    # 18. 저장 결과 출력
+    # -----------------------------------------
+
+    print("\n=== Artifact 저장 완료 ===")
+
+    print(f"Model: {MODEL_PATH}")
+    print(f"Metadata: {META_PATH}")
 
 
 
