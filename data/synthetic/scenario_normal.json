@@ -1,0 +1,144 @@
+{
+  "scenario_id": "scenario_normal",
+  "title": "시나리오 A: 정상 이동",
+  "description": "집에서 서울노인복지센터 방문 후 정상 귀가",
+  "target_elderly": "김정순 (만 78세)",
+  "frames": [
+    {
+      "frame_id": 1,
+      "timestamp": "2026-08-18T14:00:00",
+      "lat": 37.57182,
+      "lng": 126.98921,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    },
+    {
+      "frame_id": 2,
+      "timestamp": "2026-08-18T14:04:00",
+      "lat": 37.57245,
+      "lng": 126.9886,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    },
+    {
+      "frame_id": 3,
+      "timestamp": "2026-08-18T14:08:00",
+      "lat": 37.5735,
+      "lng": 126.9875,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    },
+    {
+      "frame_id": 4,
+      "timestamp": "2026-08-18T14:12:00",
+      "lat": 37.5746,
+      "lng": 126.9863,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    },
+    {
+      "frame_id": 5,
+      "timestamp": "2026-08-18T14:16:00",
+      "lat": 37.5752,
+      "lng": 126.9858,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    },
+    {
+      "frame_id": 6,
+      "timestamp": "2026-08-18T14:20:00",
+      "lat": 37.5746,
+      "lng": 126.9863,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    },
+    {
+      "frame_id": 7,
+      "timestamp": "2026-08-18T14:24:00",
+      "lat": 37.5735,
+      "lng": 126.9875,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    },
+    {
+      "frame_id": 8,
+      "timestamp": "2026-08-18T14:28:00",
+      "lat": 37.57182,
+      "lng": 126.98921,
+      "features": {
+        "speed_kmh": 3.1,
+        "deviation_distance_m": 8.0,
+        "angular_variance": 0.08,
+        "stay_duration_min": 0
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "안전한 경로로 이동 중입니다.",
+      "guardian_alert": "정상 이동 중 (목적지: 서울노인복지센터)"
+    }
+  ]
+}
