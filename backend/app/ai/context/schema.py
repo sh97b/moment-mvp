@@ -33,6 +33,15 @@ class Routine(BaseModel):
         ),
     )
 
+    return_time: str | None = Field(
+        default=None,
+        description=(
+            "해당 활동에서 귀가하는 시각. "
+            "사용자가 명시한 경우 HH:MM, "
+            "명시하지 않았으면 null"
+        ),
+    )
+
     time_period: str | None = Field(
         default=None,
         description=(
@@ -89,3 +98,25 @@ class InitialContext(BaseModel):
     usual_return_time: str
 
     routines: list[Routine]
+
+
+from typing import Literal
+
+
+class WeeklyPattern(BaseModel):
+    days: list[DayCode] = Field(
+        default_factory=list
+    )
+    destination: str | None = None
+    departure_time: str | None = None
+    return_time: str | None = None
+
+
+class ContextParseResponse(BaseModel):
+    weekly_patterns: list[WeeklyPattern] = Field(
+        default_factory=list
+    )
+    source: Literal["gemini", "fallback"]
+    warnings: list[str] = Field(
+        default_factory=list
+    )
