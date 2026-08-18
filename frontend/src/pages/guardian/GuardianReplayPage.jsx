@@ -169,8 +169,6 @@ export default function GuardianReplayPage() {
     <GuardianPage
       riskLevel={currentFrame.risk_level}
       reasons={currentFrame.reasons}
-      guardianAlert={currentFrame.guardian_alert}
-      elderlyAlert={currentFrame.elderly_alert}
       frame={currentFrame}
       firstFrame={replay.frames[0]}
       playedFrames={playedFrames}

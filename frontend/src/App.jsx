@@ -6,6 +6,7 @@ import GuardianSetupCompletePage from './pages/setup/GuardianSetupCompletePage.j
 import GuardianSetupPatternPage from './pages/setup/GuardianSetupPatternPage.jsx'
 import GuardianSetupPlacesPage from './pages/setup/GuardianSetupPlacesPage.jsx'
 import SetupPage from './pages/setup/SetupPage.jsx'
+import SeniorEntryPage from './pages/senior/SeniorEntryPage.jsx'
 import SeniorPage from './pages/senior/SeniorPage.jsx'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/guardian/warning" element={<Navigate to="/guardian?scenario=persistent_anomaly" replace />} />
         <Route path="/guardian/danger" element={<Navigate to="/guardian?scenario=persistent_anomaly" replace />} />
         <Route path="/senior" element={<SeniorPage />} />
+        <Route path="/senior/enter" element={<SeniorEntryPage />} />
         <Route path="*" element={<Navigate to="/setup" replace />} />
       </Routes>
     </GuardianSetupProvider>

@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import GuardianSetupHeader from '../../components/GuardianSetupHeader.jsx'
 import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
+import { createGuardianProfile } from '../../utils/guardianProfile.js'
 
 function formatReturnTime(value) {
   const hour = Number(value.split(':')[0])
@@ -10,7 +12,18 @@ function formatReturnTime(value) {
 }
 
 export default function GuardianSetupCompletePage() {
+  const navigate = useNavigate()
   const { setup } = useGuardianSetup()
+  const [generatedProfile, setGeneratedProfile] = useState(null)
+
+  const handleStart = () => {
+    const profile = generatedProfile ?? createGuardianProfile(setup.personName)
+    setGeneratedProfile(profile)
+    if (profile?.code) {
+      window.localStorage.setItem('moment.last-guardian-profile', JSON.stringify(profile))
+    }
+    navigate('/guardian')
+  }
 
   return (
     <main className="guardian-setup-page">
@@ -36,6 +49,10 @@ export default function GuardianSetupCompletePage() {
               <dd>{setup.places.filter(Boolean).join(' · ') || '등록된 장소 없음'}</dd>
             </div>
             <div>
+              <dt>등록 코드</dt>
+              <dd>{generatedProfile?.code ?? '시작하기를 눌러 생성'}</dd>
+            </div>
+            <div>
               <dt>평소 귀가 시간</dt>
               <dd>{formatReturnTime(setup.returnTime)}</dd>
             </div>
@@ -51,7 +68,7 @@ export default function GuardianSetupCompletePage() {
           <p>합성 이동 기록이 쌓이면 GPS Feature를 기반으로 개인 정상 이동 Baseline을 별도로 구성합니다. AI가 위험 여부를 직접 결정하지는 않습니다.</p>
         </aside>
 
-        <Link className="setup-primary-action" to="/guardian">MOMENT 시작하기</Link>
+        <button type="button" className="setup-primary-action" onClick={handleStart}>MOMENT 시작하기</button>
       </div>
     </main>
   )

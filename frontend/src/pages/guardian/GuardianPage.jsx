@@ -1,23 +1,26 @@
+import { useEffect, useState } from 'react'
 import KakaoMap from '../../components/KakaoMap.jsx'
+import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
+import { readActiveGuardianProfile } from '../../utils/guardianProfile.js'
 
 const riskStages = {
   0: {
     label: '0단계 정상',
     summary: '평소 범위 내',
     title: '✓ 정상 이동 중',
-    message: '현재 frame은 평소 이동패턴 범위에 있습니다. MOMENT가 계속 분석합니다.',
+    message: '현재 위치는 평소 이동패턴 범위에 있습니다. MOMENT가 계속 분석합니다.',
   },
   1: {
     label: '1단계 주의',
     summary: '이동 징후 확인 중',
     title: '평소와 다른 이동 징후 확인 중',
-    message: '한 번의 기준 초과 또는 평소와 다른 이동 feature가 확인되었습니다.',
+    message: '한 번의 기준 초과 또는 평소와 다른 이동 징후가 확인되었습니다.',
   },
   2: {
     label: '2단계 경고',
     summary: '이동 징후 지속',
     title: '평소와 다른 이동 징후가 이어지고 있습니다',
-    message: '여러 이동 feature가 연속 frame에서 확인되어 보호자 화면에 안내합니다.',
+    message: '여러 이동 징후가 연속적으로 위치에서 확인되어 보호자 화면에 안내합니다.',
   },
   3: {
     label: '3단계 위험',
@@ -33,6 +36,19 @@ function formatClock(timestamp) {
     minute: '2-digit',
     hour12: true,
   }).format(new Date(timestamp))
+}
+
+function formatRelativeTime(timestamp, currentTimestamp) {
+  const elapsedMs = Math.max(0, new Date(currentTimestamp) - new Date(timestamp))
+  const elapsedMinutes = Math.floor(elapsedMs / 60000)
+
+  if (elapsedMinutes < 1) return '방금 전'
+  if (elapsedMinutes < 60) return `${elapsedMinutes}분 전`
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60)
+  if (elapsedHours < 24) return `${elapsedHours}시간 전`
+
+  return `${Math.floor(elapsedHours / 24)}일 전`
 }
 
 function formatElapsed(firstTimestamp, currentTimestamp) {
@@ -57,11 +73,46 @@ function formatDistanceDelta(delta) {
   return `직전 위치 기록보다 ${Math.abs(Math.round(delta))}m ${delta > 0 ? '증가' : '감소'}`
 }
 
+function collectAlertLogs(frames) {
+  const alertLogs = []
+  const activeAlertKeys = new Map()
+
+  frames.forEach((replayFrame, frameIndex) => {
+    const alerts = [
+      { source: 'elderly', value: replayFrame.elderly_alert },
+      { source: 'guardian', value: replayFrame.guardian_alert },
+    ]
+
+    alerts.forEach(({ source, value }) => {
+      if (!value?.title || !value?.message) {
+        activeAlertKeys.delete(source)
+        return
+      }
+
+      const alertKey = `${value.title}:${value.message}`
+      if (activeAlertKeys.get(source) === alertKey) return
+
+      alertLogs.push({
+        id: `movement:${source}:${replayFrame.timestamp}:${frameIndex}`,
+        kind: 'movement',
+        label: '이동 알림',
+        title: value.title,
+        message: value.message,
+        timestamp: replayFrame.timestamp,
+        riskLevel: replayFrame.risk_level,
+      })
+      activeAlertKeys.set(source, alertKey)
+    })
+  })
+
+  return alertLogs.sort(
+    (first, second) => new Date(first.timestamp) - new Date(second.timestamp),
+  )
+}
+
 export default function GuardianPage({
   riskLevel,
   reasons,
-  guardianAlert,
-  elderlyAlert,
   frame,
   firstFrame,
   playedFrames,
@@ -78,14 +129,72 @@ export default function GuardianPage({
   onRestart,
   onRetry,
 }) {
-  const stage = riskStages[riskLevel] ?? riskStages[0]
+  const [manualNormalLog, setManualNormalLog] = useState(null)
+  const [normalOutingFeedback, setNormalOutingFeedback] = useState(false)
+  const effectiveRiskLevel = riskLevel
+  const stage = riskStages[effectiveRiskLevel] ?? riskStages[0]
+  const { setup } = useGuardianSetup()
+  const activeProfile = readActiveGuardianProfile()
+  const personName = activeProfile?.name || setup.personName.trim() || '보호 대상자'
+  const guardianCode = activeProfile?.code || '코드 없음'
   const path = playedFrames.map(({ lat, lng }) => ({ lat, lng }))
   const currentPosition = { lat: frame.lat, lng: frame.lng }
   const replayFinished = currentFrameIndex === totalFrames - 1
+  const alertLogs = [
+    ...collectAlertLogs(playedFrames),
+    ...(manualNormalLog ? [manualNormalLog] : []),
+  ].sort((first, second) => new Date(first.timestamp) - new Date(second.timestamp))
+  const frameAlerts = [frame.elderly_alert, frame.guardian_alert].filter(
+    (alert) => alert?.title && alert?.message,
+  )
+  const frameAlert = frameAlerts[frameAlerts.length - 1] ?? null
+  const currentStatus = manualNormalLog
+    ? {
+        kind: 'manual',
+        label: '보호자 확인됨',
+        title: '정상 외출로 확인했습니다',
+        message: '보호자가 현재 이동을 정상 외출로 확인했습니다. 분석 위험 단계는 변경하지 않습니다.',
+      }
+    : frameAlert
+      ? { ...frameAlert, kind: 'movement', label: '이동 알림' }
+      : {
+          kind: 'normal',
+          label: '현재 상태',
+          title: effectiveRiskLevel === 0 ? '✓ 정상 이동 중입니다' : stage.title,
+          message: effectiveRiskLevel === 0
+            ? '현재 확인된 평소와 다른 이동 징후가 없습니다.'
+            : stage.message,
+        }
+  const currentStatusTimestamp = manualNormalLog?.timestamp ?? frame.timestamp
+
+  useEffect(() => {
+    if (!normalOutingFeedback) return undefined
+
+    const timer = window.setTimeout(() => setNormalOutingFeedback(false), 2600)
+    return () => window.clearTimeout(timer)
+  }, [normalOutingFeedback])
+
+  const confirmNormalOuting = () => {
+    setManualNormalLog({
+      id: `manual-normal:${frame.timestamp}`,
+      kind: 'manual',
+      label: '보호자 확인',
+      title: '정상 외출로 확인',
+      message: '보호자가 현재 이동을 정상 외출로 확인했습니다. 분석 위험 단계는 유지됩니다.',
+      timestamp: frame.timestamp,
+      riskLevel,
+    })
+    setNormalOutingFeedback(true)
+  }
 
   return (
-    <main className={`guardian-page risk-level-${riskLevel}`}>
+    <main className={`guardian-page risk-level-${effectiveRiskLevel}`}>
       <header className="guardian-hero">
+        <div className="guardian-code-row">
+          <span>등록 코드</span>
+          <strong>{guardianCode}</strong>
+        </div>
+
         <div className="guardian-brand-row">
           <div className="guardian-brand" aria-label="MOMENT">
             <span className="guardian-brand-mark">M</span>
@@ -93,20 +202,21 @@ export default function GuardianPage({
           </div>
           <div className="live-badge">
             <span className="status-dot" />
-            {replaySource === 'mock' ? 'Mock 재생 중' : 'API 재생 중'}
+            실시간 분석중
           </div>
         </div>
 
         <div className="guardian-person-row">
           <div>
             <p className="guardian-label">보호 대상자</p>
-            <h1>보호 대상자 A</h1>
+            <h1>{personName}</h1>
           </div>
           <div className="risk-badge">
             <span className="status-dot" />
             {stage.label}
           </div>
         </div>
+
       </header>
 
       <div className="guardian-content">
@@ -135,7 +245,11 @@ export default function GuardianPage({
                   key={scenario.id}
                   className={scenario.id === selectedScenarioId ? 'active' : undefined}
                   type="button"
-                  onClick={() => onSelectScenario(scenario.id)}
+                  onClick={() => {
+                    setManualNormalLog(null)
+                    setNormalOutingFeedback(false)
+                    onSelectScenario(scenario.id)
+                  }}
                   title={scenario.description}
                 >
                   {scenario.name}
@@ -150,12 +264,75 @@ export default function GuardianPage({
               <span>{replayFinished ? '재생 완료' : isPlaying ? '자동 재생 중' : '일시 정지'}</span>
             </div>
             <div>
-              <button type="button" onClick={onRestart}>처음부터</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setManualNormalLog(null)
+                  setNormalOutingFeedback(false)
+                  onRestart()
+                }}
+              >
+                처음부터
+              </button>
               <button type="button" onClick={onTogglePlayback} disabled={replayFinished}>
                 {isPlaying ? '일시 정지' : '재생'}
               </button>
             </div>
           </div>
+        </section>
+
+        <section
+          className={`status-alert-card status-alert-${currentStatus.kind}`}
+          aria-live="polite"
+        >
+          <div className="status-alert-meta">
+            <div className="status-alert-label">
+              <span>{currentStatus.label}</span>
+            </div>
+            <time dateTime={currentStatusTimestamp}>{formatClock(currentStatusTimestamp)}</time>
+          </div>
+          <div className="status-alert-title-row">
+            <h2>{currentStatus.title}</h2>
+            {riskLevel >= 2 && replayFinished && !manualNormalLog && (
+                <button
+                  className="normal-outing-button"
+                  type="button"
+                  onClick={confirmNormalOuting}
+                >
+                  정상 외출 확인
+                </button>
+            )}
+          </div>
+          <p>{currentStatus.message}</p>
+
+          {alertLogs.length > 0 && (
+            <details className="alert-history-details">
+              <summary className="alert-history-toggle">
+                <span>알림 기록 {alertLogs.length}건</span>
+                <strong>펼쳐보기</strong>
+              </summary>
+
+              <ol className="alert-history-list">
+                {[...alertLogs].reverse().map((alert) => (
+                  <li
+                    key={alert.id}
+                    className={`alert-history-item alert-history-${alert.kind}${
+                      alert.kind === 'movement' ? ` alert-history-risk-${alert.riskLevel}` : ''
+                    }`}
+                  >
+                    <div>
+                      <span>{alert.label}</span>
+                      <time dateTime={alert.timestamp}>
+                        {formatClock(alert.timestamp)} · {formatRelativeTime(alert.timestamp, frame.timestamp)}
+                      </time>
+                    </div>
+                    <strong>{alert.title}</strong>
+                    <p>{alert.message}</p>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
         </section>
 
         <section className="dashboard-card map-card" aria-labelledby="location-title">
@@ -179,11 +356,23 @@ export default function GuardianPage({
           </article>
         </section>
 
-        <section className="dashboard-card analysis-card" aria-labelledby="analysis-title">
+        <section
+          className={`dashboard-card analysis-card${
+            manualNormalLog ? ` analysis-before-confirmation analysis-risk-${manualNormalLog.riskLevel}` : ''
+          }`}
+          aria-labelledby="analysis-title"
+        >
           <div className="analysis-heading">
-            <h2 id="analysis-title">현재 이동 분석</h2>
+            <h2 id="analysis-title">
+              {manualNormalLog ? '보호자 확인 당시 이동 분석' : '현재 이동 분석'}
+            </h2>
             <strong>{Math.round(frame.anomaly_score * 100)}점</strong>
           </div>
+          {manualNormalLog && (
+            <p className="manual-analysis-notice">
+              보호자 확인과 별개로 아래 위험 단계는 backend 분석 결과를 유지합니다.
+            </p>
+          )}
           <div className="anomaly-meter" aria-label={`이상 점수 ${Math.round(frame.anomaly_score * 100)}점`}>
             <span style={{ width: `${Math.min(100, Math.max(0, frame.anomaly_score * 100))}%` }} />
           </div>
@@ -196,27 +385,13 @@ export default function GuardianPage({
           )}
         </section>
 
-        {elderlyAlert && (
-          <section className="elderly-alert-card">
-            <span>고령자 안내</span>
-            <h2>{elderlyAlert.title}</h2>
-            <p>{elderlyAlert.message}</p>
-          </section>
-        )}
-
-        {guardianAlert && (
-          <section className="guardian-alert-card" role="alert">
-            <span>보호자 알림</span>
-            <h2>{guardianAlert.title}</h2>
-            <p>{guardianAlert.message}</p>
-          </section>
-        )}
-
-        <section className="risk-status" aria-live="polite">
-          <h2>{stage.title}</h2>
-          <p>{stage.message}</p>
-        </section>
       </div>
+
+      {normalOutingFeedback && (
+        <div className="normal-outing-toast" role="status">
+          정상 외출 확인을 알림 기록에 저장했습니다. 분석 위험 단계는 유지됩니다.
+        </div>
+      )}
     </main>
   )
 }
