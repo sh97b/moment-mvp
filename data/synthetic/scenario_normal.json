@@ -9,13 +9,21 @@
       "timestamp": "2026-08-18T14:00:00",
       "lat": 37.57182,
       "lng": 126.98921,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.0,
+        "total_distance_m": 0.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 0,
+        "revisit_count": 0,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "유지"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
@@ -26,13 +34,21 @@
       "timestamp": "2026-08-18T14:04:00",
       "lat": 37.57245,
       "lng": 126.9886,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.07,
+        "total_distance_m": 120.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 0,
+        "revisit_count": 0,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "증가"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
@@ -43,13 +59,21 @@
       "timestamp": "2026-08-18T14:08:00",
       "lat": 37.5735,
       "lng": 126.9875,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.13,
+        "total_distance_m": 240.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 1,
+        "revisit_count": 0,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "증가"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
@@ -60,13 +84,21 @@
       "timestamp": "2026-08-18T14:12:00",
       "lat": 37.5746,
       "lng": 126.9863,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.2,
+        "total_distance_m": 360.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 1,
+        "revisit_count": 0,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "증가"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
@@ -77,13 +109,21 @@
       "timestamp": "2026-08-18T14:16:00",
       "lat": 37.5752,
       "lng": 126.9858,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.27,
+        "total_distance_m": 480.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 2,
+        "revisit_count": 0,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "유지"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
@@ -94,13 +134,21 @@
       "timestamp": "2026-08-18T14:20:00",
       "lat": 37.5746,
       "lng": 126.9863,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.33,
+        "total_distance_m": 600.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 2,
+        "revisit_count": 0,
+        "repeat_section": 1,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "감소"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
@@ -111,13 +159,21 @@
       "timestamp": "2026-08-18T14:24:00",
       "lat": 37.5735,
       "lng": 126.9875,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.4,
+        "total_distance_m": 720.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 3,
+        "revisit_count": 0,
+        "repeat_section": 1,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "감소"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
@@ -128,13 +184,21 @@
       "timestamp": "2026-08-18T14:28:00",
       "lat": 37.57182,
       "lng": 126.98921,
-      "features": {
-        "speed_kmh": 3.1,
-        "deviation_distance_m": 8.0,
-        "angular_variance": 0.08,
-        "stay_duration_min": 0
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.47,
+        "total_distance_m": 840.0,
+        "max_deviation_from_home_m": 12.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
       },
-      "anomaly_score": 0.04,
+      "realtime_movement_features": {
+        "turn_count": 3,
+        "revisit_count": 0,
+        "repeat_section": 1,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "감소"
+      },
+      "anomaly_score": 0.03,
       "risk_level": 0,
       "reasons": [],
       "elderly_alert": "안전한 경로로 이동 중입니다.",
