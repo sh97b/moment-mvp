@@ -5,19 +5,19 @@ const riskStages = {
     label: '0단계 정상',
     summary: '평소 범위 내',
     title: '✓ 정상 이동 중',
-    message: '현재 frame은 평소 이동패턴 범위에 있습니다. MOMENT가 계속 분석합니다.',
+    message: '현재 위치는 평소 이동패턴 범위에 있습니다. MOMENT가 계속 분석합니다.',
   },
   1: {
     label: '1단계 주의',
     summary: '이동 징후 확인 중',
     title: '평소와 다른 이동 징후 확인 중',
-    message: '한 번의 기준 초과 또는 평소와 다른 이동 feature가 확인되었습니다.',
+    message: '한 번의 기준 초과 또는 평소와 다른 이동 징후가 확인되었습니다.',
   },
   2: {
     label: '2단계 경고',
     summary: '이동 징후 지속',
     title: '평소와 다른 이동 징후가 이어지고 있습니다',
-    message: '여러 이동 feature가 연속 frame에서 확인되어 보호자 화면에 안내합니다.',
+    message: '여러 이동 징후가 연속적으로 위치에서 확인되어 보호자 화면에 안내합니다.',
   },
   3: {
     label: '3단계 위험',

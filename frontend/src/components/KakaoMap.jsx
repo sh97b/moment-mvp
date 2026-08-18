@@ -4,12 +4,127 @@ const KAKAO_MAP_SCRIPT_ID = 'kakao-map-sdk'
 const SETUP_PREVIEW_CENTER = { lat: 37.5665, lng: 126.978 }
 const ROUTE_PADDING = 44
 const KAKAO_MAX_LEVEL = 14
+const KAKAO_MIN_LEVEL = 2
 const SINGLE_POINT_MAX_LEVEL = 4
 
 let kakaoMapsPromise
 
 function isCoordinate(position) {
   return Number.isFinite(position?.lat) && Number.isFinite(position?.lng)
+}
+
+function isEntireRouteVisible(map, path) {
+  if (!map || !window.kakao?.maps) return true
+
+  const coordinates = path.filter(isCoordinate)
+  if (coordinates.length < 2) return true
+
+  const bounds = map.getBounds()
+  return coordinates.every(({ lat, lng }) =>
+    bounds.contain(new window.kakao.maps.LatLng(lat, lng)),
+  )
+}
+
+function segmentIntersectsViewport(start, end, viewport) {
+  const deltaLng = end.lng - start.lng
+  const deltaLat = end.lat - start.lat
+  const edges = [
+    [-deltaLng, start.lng - viewport.west],
+    [deltaLng, viewport.east - start.lng],
+    [-deltaLat, start.lat - viewport.south],
+    [deltaLat, viewport.north - start.lat],
+  ]
+  let startRatio = 0
+  let endRatio = 1
+
+  for (const [direction, distance] of edges) {
+    if (direction === 0 && distance < 0) return false
+    if (direction === 0) continue
+
+    const ratio = distance / direction
+    if (direction < 0) {
+      startRatio = Math.max(startRatio, ratio)
+    } else {
+      endRatio = Math.min(endRatio, ratio)
+    }
+
+    if (startRatio > endRatio) return false
+  }
+
+  return true
+}
+
+function isAnyRouteVisible(map, path) {
+  if (!map || !window.kakao?.maps) return true
+
+  const coordinates = path.filter(isCoordinate)
+  if (coordinates.length < 2) return true
+
+  const bounds = map.getBounds()
+  const southWest = bounds.getSouthWest()
+  const northEast = bounds.getNorthEast()
+  const viewport = {
+    south: southWest.getLat(),
+    north: northEast.getLat(),
+    west: southWest.getLng(),
+    east: northEast.getLng(),
+  }
+
+  return coordinates
+    .slice(1)
+    .some((coordinate, index) =>
+      segmentIntersectsViewport(coordinates[index], coordinate, viewport),
+    )
+}
+
+function getMapView(map) {
+  const center = map.getCenter()
+  return {
+    center: { lat: center.getLat(), lng: center.getLng() },
+    level: map.getLevel(),
+  }
+}
+
+function keepRouteInView(
+  map,
+  path,
+  lastValidViewRef,
+  restoringViewRef,
+  constraintSuspendedRef,
+  routeFitLevelRef,
+) {
+  if (
+    restoringViewRef.current ||
+    constraintSuspendedRef.current ||
+    path.filter(isCoordinate).length < 2
+  ) {
+    return
+  }
+
+  const isZoomedIn = map.getLevel() < routeFitLevelRef.current
+  const isRouteVisible = isZoomedIn
+    ? isAnyRouteVisible(map, path)
+    : isEntireRouteVisible(map, path)
+
+  if (isRouteVisible) {
+    lastValidViewRef.current = getMapView(map)
+    return
+  }
+
+  const lastValidView = lastValidViewRef.current
+  if (!lastValidView) return
+
+  restoringViewRef.current = true
+  map.setLevel(lastValidView.level)
+  map.setCenter(
+    new window.kakao.maps.LatLng(
+      lastValidView.center.lat,
+      lastValidView.center.lng,
+    ),
+  )
+  window.requestAnimationFrame(() => {
+    restoringViewRef.current = false
+  })
 }
 
 function fitMapToRoute(map, path, currentPosition) {
@@ -90,6 +205,10 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
   const polylineRef = useRef(null)
   const latestPositionRef = useRef(currentPosition)
   const latestPathRef = useRef(path)
+  const lastValidViewRef = useRef(null)
+  const restoringViewRef = useRef(false)
+  const constraintSuspendedRef = useRef(false)
+  const routeFitLevelRef = useRef(SINGLE_POINT_MAX_LEVEL)
   const [status, setStatus] = useState('loading')
   const appKey = import.meta.env.VITE_KAKAO_MAP_KEY?.trim()
 
@@ -105,6 +224,8 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
     let isMounted = true
     let resizeObserver
     let resizeFrame
+    let mapInstance
+    let handleViewportChange
 
     loadKakaoMapsSdk(appKey)
       .then(() => {
@@ -119,6 +240,31 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
           level: 4,
         })
         map.setZoomable(true)
+        map.setMinLevel(KAKAO_MIN_LEVEL)
+        fitMapToRoute(map, latestPathRef.current, latestPositionRef.current)
+        routeFitLevelRef.current = map.getLevel()
+        lastValidViewRef.current = getMapView(map)
+        mapInstance = map
+        handleViewportChange = () => {
+          keepRouteInView(
+            map,
+            latestPathRef.current,
+            lastValidViewRef,
+            restoringViewRef,
+            constraintSuspendedRef,
+            routeFitLevelRef,
+          )
+        }
+        window.kakao.maps.event.addListener(
+          map,
+          'center_changed',
+          handleViewportChange,
+        )
+        window.kakao.maps.event.addListener(
+          map,
+          'zoom_changed',
+          handleViewportChange,
+        )
 
         mapRef.current = map
         if (typeof ResizeObserver !== 'undefined') {
@@ -126,7 +272,13 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
             map.relayout()
             window.cancelAnimationFrame(resizeFrame)
             resizeFrame = window.requestAnimationFrame(() => {
+              constraintSuspendedRef.current = true
               fitMapToRoute(map, latestPathRef.current, latestPositionRef.current)
+              routeFitLevelRef.current = map.getLevel()
+              lastValidViewRef.current = getMapView(map)
+              window.requestAnimationFrame(() => {
+                constraintSuspendedRef.current = false
+              })
             })
           })
           resizeObserver.observe(mapContainerRef.current)
@@ -141,6 +293,18 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
       isMounted = false
       resizeObserver?.disconnect()
       window.cancelAnimationFrame(resizeFrame)
+      if (mapInstance && handleViewportChange && window.kakao?.maps?.event) {
+        window.kakao.maps.event.removeListener(
+          mapInstance,
+          'center_changed',
+          handleViewportChange,
+        )
+        window.kakao.maps.event.removeListener(
+          mapInstance,
+          'zoom_changed',
+          handleViewportChange,
+        )
+      }
       markerRef.current?.setMap(null)
       polylineRef.current?.setMap(null)
       markerRef.current = null
@@ -173,7 +337,13 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
       .filter(isCoordinate)
       .map(({ lat, lng }) => new window.kakao.maps.LatLng(lat, lng))
 
+    constraintSuspendedRef.current = true
     fitMapToRoute(map, path, currentPosition)
+    routeFitLevelRef.current = map.getLevel()
+    lastValidViewRef.current = getMapView(map)
+    window.requestAnimationFrame(() => {
+      constraintSuspendedRef.current = false
+    })
 
     if (!polylineRef.current && linePath.length >= 2) {
       polylineRef.current = new window.kakao.maps.Polyline({
