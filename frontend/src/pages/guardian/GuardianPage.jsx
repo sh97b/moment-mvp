@@ -1,4 +1,8 @@
 import KakaoMap from '../../components/KakaoMap.jsx'
+import {
+  MASTER_CONNECTION_CODE,
+  readSeniorLinkCookie,
+} from '../../utils/seniorLinkCookie.js'
 
 const riskStages = {
   0: {
@@ -79,6 +83,9 @@ export default function GuardianPage({
   onRetry,
 }) {
   const stage = riskStages[riskLevel] ?? riskStages[0]
+  const seniorLink = readSeniorLinkCookie()
+  const personName = seniorLink?.personName ?? '보호 대상자'
+  const connectionCode = seniorLink?.code ?? MASTER_CONNECTION_CODE
   const path = playedFrames.map(({ lat, lng }) => ({ lat, lng }))
   const currentPosition = { lat: frame.lat, lng: frame.lng }
   const replayFinished = currentFrameIndex === totalFrames - 1
@@ -93,19 +100,24 @@ export default function GuardianPage({
           </div>
           <div className="live-badge">
             <span className="status-dot" />
-            {replaySource === 'mock' ? 'Mock 재생 중' : 'API 재생 중'}
+            실시간 분석중
           </div>
         </div>
 
         <div className="guardian-person-row">
           <div>
             <p className="guardian-label">보호 대상자</p>
-            <h1>보호 대상자 A</h1>
+            <h1>{personName}</h1>
           </div>
           <div className="risk-badge">
             <span className="status-dot" />
             {stage.label}
           </div>
+        </div>
+
+        <div className="guardian-link-code" aria-label={`고령자 연결 코드 ${connectionCode}`}>
+          <span>고령자 연결 코드</span>
+          <strong>{connectionCode}</strong>
         </div>
       </header>
 

@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from 'react'
 const GuardianSetupContext = createContext(null)
 
 const initialSetup = {
-  personName: '보호 대상자 A',
+  personName: '',
   homeLocation: '합성 기준 위치 A',
   places: ['늘봄 경로당', '햇살공원'],
   returnTime: '18:00',
