@@ -370,7 +370,7 @@ textarea {
 .place-row {
   display: grid;
   grid-template-columns: 36px 1fr 48px;
-  align-items: center;
+  align-items: start;
   gap: 12px;
 }
 
@@ -383,9 +383,13 @@ textarea {
   font-weight: 800;
   background: #ebf1ff;
   border-radius: 50%;
+  margin-top: 16px;
 }
 
+.place-search-field { display: grid; min-width: 0; gap: 8px; }
 .place-row input { height: 68px; }
+.place-suggestions { max-height: 250px; margin-top: 0; }
+.place-search-message { margin: 0 2px; color: #70798b; font-size: 12px; font-weight: 500; line-height: 1.5; }
 
 .remove-place {
   width: 48px;
@@ -397,6 +401,7 @@ textarea {
   background: #fff1ef;
   border: 0;
   border-radius: 50%;
+  margin-top: 10px;
 }
 
 .add-place {
