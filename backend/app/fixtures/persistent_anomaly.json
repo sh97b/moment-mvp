@@ -1,0 +1,36 @@
+{
+  "frames": [
+    {
+      "timestamp": "2026-08-18T14:00:00+09:00",
+      "lat": 37.5665,
+      "lng": 126.9780,
+      "features": {"turn_count": 1, "revisit_count": 0, "home_distance_m": 300.0, "home_distance_delta_m": 10.0, "distance_from_route_m": 10.0},
+      "anomaly_score": 0.1,
+      "is_anomaly": false
+    },
+    {
+      "timestamp": "2026-08-18T14:01:00+09:00",
+      "lat": 37.5674,
+      "lng": 126.9794,
+      "features": {"turn_count": 2, "revisit_count": 0, "home_distance_m": 380.0, "home_distance_delta_m": 80.0, "distance_from_route_m": 110.0},
+      "anomaly_score": 0.7,
+      "is_anomaly": true
+    },
+    {
+      "timestamp": "2026-08-18T14:02:00+09:00",
+      "lat": 37.5681,
+      "lng": 126.9801,
+      "features": {"turn_count": 5, "revisit_count": 1, "home_distance_m": 470.0, "home_distance_delta_m": 90.0, "distance_from_route_m": 150.0, "stationary_duration_sec": 360.0},
+      "anomaly_score": 0.82,
+      "is_anomaly": true
+    },
+    {
+      "timestamp": "2026-08-18T14:03:00+09:00",
+      "lat": 37.5688,
+      "lng": 126.9808,
+      "features": {"turn_count": 7, "revisit_count": 3, "home_distance_m": 580.0, "home_distance_delta_m": 110.0, "distance_from_route_m": 190.0, "stationary_duration_sec": 480.0, "heading_change_deg": 140.0},
+      "anomaly_score": 0.92,
+      "is_anomaly": true
+    }
+  ]
+}
