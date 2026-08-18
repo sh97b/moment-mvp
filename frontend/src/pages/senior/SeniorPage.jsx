@@ -1,4 +1,4 @@
-import PageLayout from '../components/PageLayout.jsx'
+import PageLayout from '../../components/PageLayout.jsx'
 
 export default function SeniorPage() {
   return (

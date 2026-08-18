@@ -36,7 +36,7 @@ function loadKakaoMapsSdk(appKey) {
 
     const script = document.createElement('script')
     script.id = KAKAO_MAP_SCRIPT_ID
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=d360a6f1b0763c1f92052e18e44594af&autoload=false`
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(appKey)}&autoload=false`
     script.async = true
     script.addEventListener('load', loadMaps, { once: true })
     script.addEventListener(
