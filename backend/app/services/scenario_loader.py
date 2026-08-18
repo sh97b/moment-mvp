@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 from backend.app.models.replay import SafetyFeatures
 from backend.app.models.scenario import ScenarioSummary
+from backend.app.services.gps_feature_engineering import GpsPoint, calculate_gps_features
 
 
 class ScenarioNotFoundError(Exception):
@@ -24,15 +25,12 @@ class ScenarioDataError(Exception):
     pass
 
 
-class RawFrame(BaseModel):
+class RawGpsPoint(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     timestamp: datetime
     lat: float
     lng: float
-    features: SafetyFeatures
-    anomaly_score: Any = None
-    is_anomaly: Any = None
 
     @field_validator("timestamp")
     @classmethod
@@ -56,6 +54,12 @@ class RawFrame(BaseModel):
         return value
 
 
+class RawFrame(RawGpsPoint):
+    features: SafetyFeatures
+    anomaly_score: Any = None
+    is_anomaly: Any = None
+
+
 # 공개 scenario ID와 파일명을 한곳에서 관리해 라우터가 경로를 알지 않게 한다.
 SCENARIOS: dict[str, tuple[str, str, str]] = {
     "normal": ("normal.json", "정상 이동", "평소 경로를 따라 목적지에 다녀옵니다."),
@@ -69,7 +73,25 @@ SCENARIOS: dict[str, tuple[str, str, str]] = {
         "이상 이동 지속",
         "반복 이동과 방향 전환이 지속되고 집과의 거리가 증가합니다.",
     ),
+    "gps_normal": (
+        "gps_replay/normal.json",
+        "GPS 정상 이동",
+        "GPS 좌표에서 계산한 정상 이동 시나리오입니다.",
+    ),
+    "gps_temporary_return": (
+        "gps_replay/temporary_return.json",
+        "GPS 일시 이탈 후 복귀",
+        "GPS 좌표에서 계산한 일시 이탈 후 복귀 시나리오입니다.",
+    ),
+    "gps_persistent_anomaly": (
+        "gps_replay/persistent_anomaly.json",
+        "GPS 이상 이동 지속",
+        "GPS 좌표에서 계산한 이상 이동 지속 시나리오입니다.",
+    ),
 }
+GPS_SCENARIO_IDS = frozenset(
+    {"gps_normal", "gps_temporary_return", "gps_persistent_anomaly"}
+)
 
 
 class ScenarioLoader:
@@ -112,9 +134,43 @@ class ScenarioLoader:
             raise ScenarioDataError("Scenario frames must be an array")
         try:
             frames = [RawFrame.model_validate(frame) for frame in frames_payload]
-        except ValidationError as exc:
+            if scenario_id in GPS_SCENARIO_IDS:
+                frames = self._with_calculated_gps_features(payload, frames)
+        except (ValidationError, ValueError) as exc:
             raise ScenarioDataError("Scenario frame validation failed") from exc
         return sorted(frames, key=lambda frame: frame.timestamp)
+
+    @staticmethod
+    def _with_calculated_gps_features(
+        payload: Any,
+        frames: list[RawFrame],
+    ) -> list[RawFrame]:
+        history_payload = payload.get("history") if isinstance(payload, dict) else None
+        if not isinstance(history_payload, list) or len(history_payload) < 15:
+            raise ValueError("GPS scenario requires at least 15 history points")
+
+        history = [RawGpsPoint.model_validate(point) for point in history_payload]
+        source_points = [*history, *frames]
+        calculated = calculate_gps_features(
+            [
+                GpsPoint(timestamp=point.timestamp, lat=point.lat, lng=point.lng)
+                for point in source_points
+            ]
+        )[len(history):]
+
+        return [
+            frame.model_copy(
+                update={
+                    "features": SafetyFeatures.model_validate(
+                        {
+                            **frame.features.model_dump(),
+                            **feature.as_dict(),
+                        }
+                    )
+                }
+            )
+            for frame, feature in zip(frames, calculated, strict=True)
+        ]
 
     def _resolve_path(self, filename: str) -> Path | None:
         # 데이터팀 파일이 추가되면 백엔드 수정 없이 fixture보다 먼저 선택된다.

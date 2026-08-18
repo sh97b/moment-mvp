@@ -146,8 +146,59 @@ def test_scenarios_match_contract() -> None:
         "normal",
         "temporary_return",
         "persistent_anomaly",
+        "gps_normal",
+        "gps_temporary_return",
+        "gps_persistent_anomaly",
     ]
     assert all(set(item) == {"id", "name", "description"} for item in response.json()["scenarios"])
+
+
+@pytest.mark.parametrize(
+    ("scenario_id", "expected_risks"),
+    [
+        ("gps_normal", {0}),
+        ("gps_temporary_return", {0, 1, 2}),
+        ("gps_persistent_anomaly", {0, 1, 2, 3}),
+    ],
+)
+def test_gps_replay_scenarios_use_calculated_features(
+    scenario_id: str,
+    expected_risks: set[int],
+) -> None:
+    response = client.get(f"/api/replay/{scenario_id}")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["scenario_id"] == scenario_id
+    assert payload["frames"][0]["timestamp"].startswith("2026-08-18T09:00:00")
+    assert {frame["risk_level"] for frame in payload["frames"]} == expected_risks
+    if scenario_id == "gps_temporary_return":
+        assert payload["frames"][-1]["risk_level"] == 0
+    if scenario_id == "gps_persistent_anomaly":
+        nonzero_risks = [
+            frame["risk_level"] for frame in payload["frames"] if frame["risk_level"]
+        ]
+        assert nonzero_risks[:3] == [1, 2, 3]
+
+
+def test_gps_loader_ignores_stored_turn_and_revisit_values(tmp_path) -> None:
+    loader = ScenarioLoader()
+    source = json.loads(
+        (loader.data_dir / "gps_replay" / "normal.json").read_text(encoding="utf-8")
+    )
+    for frame in source["frames"]:
+        frame["features"]["turn_count"] = 999
+        frame["features"]["revisit_count"] = 999
+
+    target = tmp_path / "gps_replay" / "normal.json"
+    target.parent.mkdir(parents=True)
+    target.write_text(json.dumps(source), encoding="utf-8")
+
+    frames = ScenarioLoader(data_dir=tmp_path).load("gps_normal")
+
+    assert {
+        (frame.features.turn_count, frame.features.revisit_count) for frame in frames
+    } == {(0, 0)}
 
 
 def test_normal_replay_is_ordered_valid_and_stays_normal() -> None:
