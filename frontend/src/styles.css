@@ -806,6 +806,7 @@ textarea {
 
 .status-alert-card {
   overflow: hidden;
+  padding: 23px;
   color: var(--risk-color);
   background: var(--risk-soft-color);
   border: 2px solid var(--risk-border-color);
@@ -814,7 +815,6 @@ textarea {
 }
 
 .status-alert-card.status-alert-normal {
-  padding: 23px;
   color: #2f8f4a;
   background: #eefaf1;
   border-color: #cee9d4;
@@ -827,18 +827,30 @@ textarea {
   border-color: #d8e3fb;
 }
 
-.status-alert-card summary {
-  padding: 23px;
-  list-style: none;
-  cursor: pointer;
-}
-.status-alert-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.status-alert-meta { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .status-alert-meta span { font-size: 12px; font-weight: 800; }
 .status-alert-meta time { font-size: 12px; opacity: 0.68; }
-.status-alert-card h2 { margin: 8px 0 0; font-size: 20px; letter-spacing: -0.025em; }
+.status-alert-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.status-alert-card h2 { min-width: 0; margin: 0; font-size: 20px; letter-spacing: -0.025em; }
 .status-alert-card p { margin: 9px 0 0; color: #465267; font-size: 15px; line-height: 1.65; }
 
-.status-alert-card summary::-webkit-details-marker { display: none; }
+.normal-outing-button {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  color: currentcolor;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.normal-outing-button:hover { background: #fff; }
+.normal-outing-button:focus-visible { outline: 3px solid var(--risk-border-color); outline-offset: 2px; }
+.alert-history-details summary { list-style: none; cursor: pointer; }
+.alert-history-details summary::-webkit-details-marker { display: none; }
 
 .alert-history-toggle {
   display: flex;
@@ -854,15 +866,15 @@ textarea {
 
 .alert-history-toggle strong { color: var(--risk-color); }
 .alert-history-toggle strong::after { display: inline-block; margin-left: 6px; content: "⌄"; transition: transform 150ms ease; }
-.status-alert-card[open] .alert-history-toggle strong { font-size: 0; }
-.status-alert-card[open] .alert-history-toggle strong::before { font-size: 12px; content: "접기"; }
-.status-alert-card[open] .alert-history-toggle strong::after { font-size: 12px; transform: rotate(180deg); }
+.alert-history-details[open] .alert-history-toggle strong { font-size: 0; }
+.alert-history-details[open] .alert-history-toggle strong::before { font-size: 12px; content: "접기"; }
+.alert-history-details[open] .alert-history-toggle strong::after { font-size: 12px; transform: rotate(180deg); }
 
 .alert-history-list {
   display: grid;
   gap: 10px;
   margin: 0;
-  padding: 14px 18px 18px;
+  padding: 14px 0 0;
   list-style: none;
   border-top: 1px solid rgb(85 100 125 / 14%);
 }
@@ -871,10 +883,15 @@ textarea {
   padding: 15px;
   color: var(--risk-color);
   background: rgb(255 255 255 / 68%);
+  border: 1px solid #000;
   border-radius: 14px;
 }
 
 .alert-history-item.alert-history-elderly { color: #3153ae; background: rgb(255 255 255 / 68%); }
+.alert-history-item.alert-history-manual { color: #2f8f4a; background: #fff; }
+.alert-history-item.alert-history-risk-1 { color: #956200; background: #fff8df; }
+.alert-history-item.alert-history-risk-2 { color: #be4e10; background: #fff2e9; }
+.alert-history-item.alert-history-risk-3 { color: #b83242; background: #fff0f2; }
 .alert-history-item > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .alert-history-item > div span { font-size: 11px; font-weight: 800; }
 .alert-history-item time { font-size: 11px; opacity: 0.68; }
@@ -990,8 +1007,7 @@ textarea {
   .replay-controls button { padding: 7px 8px; }
   .reason-list li,
   .empty-reasons { font-size: 14px; }
-  .status-alert-card summary,
-  .status-alert-card.status-alert-normal { padding: 19px; }
+  .status-alert-card { padding: 19px; }
   .status-alert-card h2 { font-size: 17px; }
   .status-alert-card p { font-size: 14px; }
 }

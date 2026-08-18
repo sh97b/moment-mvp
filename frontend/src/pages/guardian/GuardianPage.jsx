@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import KakaoMap from '../../components/KakaoMap.jsx'
 import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
 
@@ -80,6 +81,7 @@ function collectAlertLogs(frames) {
         title: value.title,
         message: value.message,
         timestamp: replayFrame.timestamp,
+        riskLevel: replayFrame.risk_level,
       })
     })
   })
@@ -108,39 +110,41 @@ export default function GuardianPage({
   onRestart,
   onRetry,
 }) {
-  const stage = riskStages[riskLevel] ?? riskStages[0]
+  const [manualNormalLog, setManualNormalLog] = useState(null)
+  const effectiveRiskLevel = manualNormalLog ? 0 : riskLevel
+  const stage = riskStages[effectiveRiskLevel] ?? riskStages[0]
   const { setup } = useGuardianSetup()
   const personName = setup.personName.trim() || '보호 대상자'
   const path = playedFrames.map(({ lat, lng }) => ({ lat, lng }))
   const currentPosition = { lat: frame.lat, lng: frame.lng }
   const replayFinished = currentFrameIndex === totalFrames - 1
-  const alertLogs = collectAlertLogs(playedFrames)
-  const currentStatus = frame.guardian_alert
+  const alertLogs = [
+    ...collectAlertLogs(playedFrames),
+    ...(manualNormalLog ? [manualNormalLog] : []),
+  ].sort((first, second) => new Date(first.timestamp) - new Date(second.timestamp))
+  const currentStatus = manualNormalLog
+    ? {
+        kind: 'normal',
+        label: '보호자 확인',
+        title: '정상 외출로 확인했습니다',
+        message: '보호자 확인으로 위험 단계를 0단계 정상으로 변경했습니다.',
+      }
+    : frame.guardian_alert
     ? { ...frame.guardian_alert, kind: 'guardian', label: '보호자 알림' }
     : frame.elderly_alert
       ? { ...frame.elderly_alert, kind: 'elderly', label: '고령자 안내' }
       : {
           kind: 'normal',
           label: '현재 상태',
-          title: riskLevel === 0 ? '✓ 정상 이동 중입니다' : stage.title,
-          message: riskLevel === 0
+          title: effectiveRiskLevel === 0 ? '✓ 정상 이동 중입니다' : stage.title,
+          message: effectiveRiskLevel === 0
             ? '현재 확인된 평소와 다른 이동 징후가 없습니다.'
             : stage.message,
         }
-
-  const currentStatusContent = (
-    <>
-      <div className="status-alert-meta">
-        <span>{currentStatus.label}</span>
-        <time dateTime={frame.timestamp}>{formatClock(frame.timestamp)}</time>
-      </div>
-      <h2>{currentStatus.title}</h2>
-      <p>{currentStatus.message}</p>
-    </>
-  )
+  const currentStatusTimestamp = manualNormalLog?.timestamp ?? frame.timestamp
 
   return (
-    <main className={`guardian-page risk-level-${riskLevel}`}>
+    <main className={`guardian-page risk-level-${effectiveRiskLevel}`}>
       <header className="guardian-hero">
         <div className="guardian-brand-row">
           <div className="guardian-brand" aria-label="MOMENT">
@@ -192,7 +196,10 @@ export default function GuardianPage({
                   key={scenario.id}
                   className={scenario.id === selectedScenarioId ? 'active' : undefined}
                   type="button"
-                  onClick={() => onSelectScenario(scenario.id)}
+                  onClick={() => {
+                    setManualNormalLog(null)
+                    onSelectScenario(scenario.id)
+                  }}
                   title={scenario.description}
                 >
                   {scenario.name}
@@ -207,7 +214,15 @@ export default function GuardianPage({
               <span>{replayFinished ? '재생 완료' : isPlaying ? '자동 재생 중' : '일시 정지'}</span>
             </div>
             <div>
-              <button type="button" onClick={onRestart}>처음부터</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setManualNormalLog(null)
+                  onRestart()
+                }}
+              >
+                처음부터
+              </button>
               <button type="button" onClick={onTogglePlayback} disabled={replayFinished}>
                 {isPlaying ? '일시 정지' : '재생'}
               </button>
@@ -215,34 +230,64 @@ export default function GuardianPage({
           </div>
         </section>
 
-        {alertLogs.length > 0 ? (
-          <details className={`status-alert-card status-alert-${currentStatus.kind}`}>
-            <summary>
-              {currentStatusContent}
-              <div className="alert-history-toggle">
+        <section
+          className={`status-alert-card status-alert-${currentStatus.kind}`}
+          aria-live="polite"
+        >
+          <div className="status-alert-meta">
+            <div className="status-alert-label">
+              <span>{currentStatus.label}</span>
+            </div>
+            <time dateTime={currentStatusTimestamp}>{formatClock(currentStatusTimestamp)}</time>
+          </div>
+          <div className="status-alert-title-row">
+            <h2>{currentStatus.title}</h2>
+            {riskLevel >= 2 && !manualNormalLog && (
+                <button
+                  className="normal-outing-button"
+                  type="button"
+                  onClick={() => setManualNormalLog({
+                    id: `manual-normal:${frame.timestamp}`,
+                    kind: 'manual',
+                    label: '보호자 확인',
+                    title: '정상 외출로 처리',
+                    message: '보호자가 현재 이동을 정상 외출로 확인해 위험 단계를 0단계로 변경했습니다.',
+                    timestamp: frame.timestamp,
+                  })}
+                >
+                  정상 외출
+                </button>
+            )}
+          </div>
+          <p>{currentStatus.message}</p>
+
+          {alertLogs.length > 0 && (
+            <details className="alert-history-details">
+              <summary className="alert-history-toggle">
                 <span>알림 기록 {alertLogs.length}건</span>
                 <strong>펼쳐보기</strong>
-              </div>
-            </summary>
+              </summary>
 
-            <ol className="alert-history-list">
-              {[...alertLogs].reverse().map((alert) => (
-                <li key={alert.id} className={`alert-history-item alert-history-${alert.kind}`}>
-                  <div>
-                    <span>{alert.label}</span>
-                    <time dateTime={alert.timestamp}>{formatClock(alert.timestamp)}</time>
-                  </div>
-                  <strong>{alert.title}</strong>
-                  <p>{alert.message}</p>
-                </li>
-              ))}
-            </ol>
-          </details>
-        ) : (
-          <section className="status-alert-card status-alert-normal" role="status" aria-live="polite">
-            {currentStatusContent}
-          </section>
-        )}
+              <ol className="alert-history-list">
+                {[...alertLogs].reverse().map((alert) => (
+                  <li
+                    key={alert.id}
+                    className={`alert-history-item alert-history-${alert.kind}${
+                      alert.kind === 'guardian' ? ` alert-history-risk-${alert.riskLevel}` : ''
+                    }`}
+                  >
+                    <div>
+                      <span>{alert.label}</span>
+                      <time dateTime={alert.timestamp}>{formatClock(alert.timestamp)}</time>
+                    </div>
+                    <strong>{alert.title}</strong>
+                    <p>{alert.message}</p>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </section>
 
         <section className="dashboard-card map-card" aria-labelledby="location-title">
           <div className="card-heading">
