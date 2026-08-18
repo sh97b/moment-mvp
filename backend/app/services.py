@@ -8,11 +8,11 @@ def evaluate_risk(turn_10min, revisit_15min):
     features = np.array([[turn_10min, revisit_15min]])
     
     # 위험도 판별 룰 (Rule-based + AI Inference 조합)
-    if turn_10min >= 6 or revisit_15min >= 2:
+    if turn_10min >= 8 or revisit_15min >= 3:
         return 3, "🔴 3단계 [위험]: 보호자 긴급 알림 (완전한 배회 감지)"
-    elif turn_10min >= 4 or revisit_15min == 1:
+    elif turn_10min >= 6 or revisit_15min == 2:
         return 2, "🟠 2단계 [경고]: Safety Loop 어르신 안내 팝업 (경로 이탈)"
-    elif turn_10min == 3:
+    elif turn_10min == 5:
         return 1, "🟡 1단계 [관심]: 모니터링 강화 (약간의 멈칫함)"
     else:
         return 0, "🟢 0단계 [정상]: 특이사항 없음 (정상 이동 중)"
