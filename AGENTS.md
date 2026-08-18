@@ -8,6 +8,10 @@
 
 의료 진단, 실종 확정, 실제 위치 추적을 암시하지 말고 `평소와 다른 이동 징후`라는 표현을 사용합니다.
 
+핵심 흐름:
+
+Context → GPS Replay → Feature Engineering → Isolation Forest → Risk Engine(0~3) → 고령자 안내 → Safety Loop → 필요 시 보호자 알림
+
 ## Fixed scope
 
 - Pages: `/setup`, `/guardian`, `/senior`
@@ -51,7 +55,14 @@ Return the full replay frame array in one response. The frontend simulates real 
 
 ## Implementation rules
 
-- Prefer the smallest change that completes the assigned scenario.
+- Perform only the requested task.
+- Inspect related files first; do not explore the whole repository unnecessarily.
+- Preserve the existing structure and working code.
+- Avoid broad refactors, file moves, and library replacements.
+- Use the smallest change that completes the assigned scenario.
+- Prefer mock/demo data where sufficient; do not overbuild production-grade behavior.
+- Briefly trace the relevant code flow before editing.
+- If an error occurs, identify its cause before changing multiple files.
 - Keep feature names and units consistent across CSV, model, API, and UI.
 - Isolation Forest raw scores must be converted consistently; test the sign and threshold explicitly.
 - Keep risk reasons human-readable and derived from actual frame features.
@@ -61,7 +72,7 @@ Return the full replay frame array in one response. The frontend simulates real 
 
 ## Verification
 
-Run the checks relevant to the files changed. If the command is not available yet, state that clearly instead of claiming success.
+Run only the checks relevant to the changed files. If a command is unavailable, state that clearly instead of claiming success.
 
 ```bash
 # backend
@@ -77,10 +88,9 @@ Before merge, manually verify all three demo scenarios and confirm that no secre
 
 ## Completion report
 
-When finishing a task, report:
+Keep the response short and report only:
 
-1. Files changed
-2. Behavior implemented
-3. Tests or manual checks run
-4. Remaining limitation or handoff note
-
+1. Cause/approach in 2–3 lines
+2. Files changed
+3. Verification result
+4. Remaining issue, only if one exists
