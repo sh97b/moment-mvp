@@ -6,6 +6,7 @@ const ROUTE_PADDING = 44
 const KAKAO_MAX_LEVEL = 14
 const KAKAO_MIN_LEVEL = 2
 const SINGLE_POINT_MAX_LEVEL = 4
+const EMPTY_PATH = []
 
 let kakaoMapsPromise
 
@@ -155,7 +156,7 @@ function fitMapToRoute(map, path, currentPosition) {
   }
 }
 
-function loadKakaoMapsSdk(appKey) {
+export function loadKakaoMapsSdk(appKey) {
   if (window.kakao?.maps) {
     return new Promise((resolve) => window.kakao.maps.load(resolve))
   }
@@ -184,7 +185,7 @@ function loadKakaoMapsSdk(appKey) {
 
     const script = document.createElement('script')
     script.id = KAKAO_MAP_SCRIPT_ID
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(appKey)}&autoload=false`
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(appKey)}&autoload=false&libraries=services`
     script.async = true
     script.addEventListener('load', loadMaps, { once: true })
     script.addEventListener(
@@ -198,7 +199,11 @@ function loadKakaoMapsSdk(appKey) {
   return kakaoMapsPromise
 }
 
-export default function KakaoMap({ currentPosition = null, path = [] }) {
+export default function KakaoMap({
+  currentPosition = null,
+  path = EMPTY_PATH,
+  ariaLabel = '현재 frame 위치와 지금까지의 합성 이동 경로를 표시한 카카오 지도',
+}) {
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
@@ -331,6 +336,9 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
       } else {
         markerRef.current.setPosition(markerPosition)
       }
+    } else if (markerRef.current) {
+      markerRef.current.setMap(null)
+      markerRef.current = null
     }
 
     const linePath = path
@@ -365,7 +373,7 @@ export default function KakaoMap({ currentPosition = null, path = [] }) {
         ref={mapContainerRef}
         className="guardian-map"
         role="img"
-        aria-label="현재 frame 위치와 지금까지의 합성 이동 경로를 표시한 카카오 지도"
+        aria-label={ariaLabel}
       />
 
       {status !== 'ready' && (

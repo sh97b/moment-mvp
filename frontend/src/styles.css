@@ -289,6 +289,46 @@ textarea {
   border-radius: 18px;
 }
 
+.location-input-row button:disabled { cursor: wait; opacity: 0.68; }
+
+.location-suggestions {
+  display: grid;
+  gap: 1px;
+  max-height: 280px;
+  margin: -3px 0 0;
+  padding: 5px;
+  overflow-y: auto;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #dbe1eb;
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgb(27 44 76 / 12%);
+}
+
+.location-suggestions li { min-width: 0; }
+
+.location-suggestions button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 13px 14px;
+  color: #263249;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 11px;
+}
+
+.location-suggestions button:hover,
+.location-suggestions button:focus-visible { background: #eef3ff; outline: none; }
+.location-suggestions strong { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.location-suggestions span { overflow: hidden; color: #70798b; font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+
+.location-search-message { margin: -2px 2px 0; color: #70798b; font-size: 13px; font-weight: 500; line-height: 1.5; }
+.location-search-selected { color: #2f8f4a; }
+.location-search-error { color: #b83242; }
+
 .setup-map { overflow: hidden; border: 1px solid #dce3ee; border-radius: 20px; }
 .setup-map .guardian-map { height: 240px; }
 .setup-map .guardian-map-wrapper { border-radius: 0; }
