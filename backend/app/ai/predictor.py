@@ -16,18 +16,6 @@ MODEL_PATH = ARTIFACT_DIR / "isolation_forest.joblib"
 META_PATH = ARTIFACT_DIR / "model_meta.json"
 
 
-# =========================================
-# 모델 / Metadata 로드
-# =========================================
-
-model = joblib.load(MODEL_PATH)
-
-with open(
-    META_PATH,
-    "r",
-    encoding="utf-8",
-) as f:
-    metadata = json.load(f)
 
 
 # =========================================
