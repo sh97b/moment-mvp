@@ -7,8 +7,10 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from backend.app.models.context import ContextParseRequest, ContextParseResponse
 from backend.app.models.replay import ReplayResponse
 from backend.app.models.scenario import ScenarioListResponse
+from backend.app.services.context_parser import parse_context_fallback
 from backend.app.services.replay_service import ReplayService
 from backend.app.services.scenario_loader import (
     ScenarioDataError,
@@ -82,6 +84,16 @@ def health() -> dict[str, str | bool]:
         "gemini_available": bool(os.getenv("GEMINI_API_KEY")),
         "mock_fallback_available": True,
     }
+
+
+@app.post("/api/context/parse", response_model=ContextParseResponse)
+def parse_context(payload: ContextParseRequest) -> ContextParseResponse:
+    """네트워크나 API 키 없이 생활패턴을 결정적으로 구조화한다."""
+
+    text = payload.text.strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="생활패턴 입력이 비어 있습니다.")
+    return parse_context_fallback(text)
 
 
 @app.get("/api/scenarios", response_model=ScenarioListResponse)

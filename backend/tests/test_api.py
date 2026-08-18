@@ -25,6 +25,53 @@ def test_health() -> None:
     }
 
 
+def test_context_parse_fallback_matches_contract_and_is_deterministic() -> None:
+    request = {
+        "text": "화요일과 목요일 오후 2시에 복지관에 가고 보통 오후 6시 전에 귀가해요."
+    }
+
+    first = client.post("/api/context/parse", json=request)
+    second = client.post("/api/context/parse", json=request)
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    assert first.json()["weekly_patterns"] == [
+        {
+            "days": ["TUE", "THU"],
+            "destination": "복지관",
+            "departure_time": "14:00",
+            "return_time": "18:00",
+        }
+    ]
+    assert first.json()["source"] == "fallback"
+    assert first.json()["warnings"]
+    assert set(first.json()) == {"weekly_patterns", "source", "warnings"}
+
+
+def test_context_parse_rejects_empty_or_whitespace_text() -> None:
+    for text in ("", "   \t\n"):
+        response = client.post("/api/context/parse", json={"text": text})
+        assert response.status_code == 422
+        assert response.json() == {"detail": "생활패턴 입력이 비어 있습니다."}
+
+
+def test_context_parse_rejects_invalid_requests_and_long_input() -> None:
+    for body in ({}, {"text": 123}, {"text": "정상 입력", "extra": True}):
+        response = client.post("/api/context/parse", json=body)
+        assert response.status_code == 422
+
+    response = client.post("/api/context/parse", json={"text": "가" * 1001})
+    assert response.status_code == 422
+
+
+def test_context_parse_does_not_echo_unrecognized_personal_details() -> None:
+    private_text = "홍길동은 서울시 종로구 123번지에서 매일 오전 9시에 외출합니다."
+    response = client.post("/api/context/parse", json={"text": private_text})
+    assert response.status_code == 200
+    assert "홍길동" not in response.text
+    assert "123번지" not in response.text
+
+
 def test_scenarios_match_contract() -> None:
     response = client.get("/api/scenarios")
     assert response.status_code == 200
