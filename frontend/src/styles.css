@@ -38,18 +38,60 @@ textarea {
 .page-layout small { color: #697386; }
 
 .guardian-page {
+  --risk-color: #2f8f4a;
+  --risk-hero-color: #3f7a5b;
+  --risk-page-color: #f2f8f4;
+  --risk-soft-color: #eefaf1;
+  --risk-border-color: #cee9d4;
+  --risk-tab-color: #e3f0e6;
+  --risk-map-color: #edf3ef;
+  --risk-shadow-color: rgb(47 143 74 / 11%);
   width: min(100%, 580px);
   min-height: 100vh;
   margin: 0 auto;
   overflow: hidden;
-  background: #f5f7fa;
+  background: var(--risk-page-color);
   box-shadow: 0 0 36px rgb(29 48 86 / 12%);
+}
+
+.guardian-page.risk-level-1 {
+  --risk-color: #956200;
+  --risk-hero-color: #a66c00;
+  --risk-page-color: #fbf7ec;
+  --risk-soft-color: #fff8df;
+  --risk-border-color: #efd998;
+  --risk-tab-color: #f3ead0;
+  --risk-map-color: #f5f1e6;
+  --risk-shadow-color: rgb(149 98 0 / 11%);
+}
+
+.guardian-page.risk-level-2 {
+  --risk-color: #be4e10;
+  --risk-hero-color: #c75a18;
+  --risk-page-color: #fbf4ef;
+  --risk-soft-color: #fff2e9;
+  --risk-border-color: #f0c6aa;
+  --risk-tab-color: #f2e5da;
+  --risk-map-color: #f5eee8;
+  --risk-shadow-color: rgb(190 78 16 / 11%);
+}
+
+.guardian-page.risk-level-3 {
+  --risk-color: #b83242;
+  --risk-hero-color: #b63847;
+  --risk-page-color: #fbf2f3;
+  --risk-soft-color: #fff0f2;
+  --risk-border-color: #ecc1c7;
+  --risk-tab-color: #f1dfe2;
+  --risk-map-color: #f5ebed;
+  --risk-shadow-color: rgb(184 50 66 / 12%);
 }
 
 .guardian-hero {
   padding: 72px 28px 32px;
   color: #fff;
-  background: #3f5fa9;
+  background: var(--risk-hero-color);
+  transition: background-color 180ms ease;
 }
 
 .guardian-brand-row,
@@ -78,30 +120,78 @@ textarea {
 .live-badge { padding: 11px 18px; font-size: 17px; background: rgb(255 255 255 / 16%); }
 .status-dot { width: 12px; height: 12px; background: #65d174; border-radius: 50%; }
 .guardian-person-row { align-items: flex-end; margin-top: 24px; }
-.guardian-label { margin: 0 0 5px; color: #cbd7f2; font-size: 19px; }
+.guardian-label { margin: 0 0 5px; color: rgb(255 255 255 / 72%); font-size: 19px; }
 .guardian-person-row h1 { margin: 0; font-size: 34px; line-height: 1.25; letter-spacing: -0.03em; }
-.risk-badge { margin-bottom: 1px; padding: 10px 17px; color: #258c42; font-size: 19px; background: #ecfff1; }
+.risk-badge { margin-bottom: 1px; padding: 10px 17px; color: var(--risk-color); font-size: 19px; background: var(--risk-soft-color); }
+.risk-badge .status-dot { background: currentColor; }
 
-.guardian-content { display: grid; gap: 22px; padding: 24px 20px 28px; }
+.guardian-content {
+  display: grid;
+  gap: 22px;
+  padding: 24px 20px 28px;
+  background: var(--risk-page-color);
+  transition: background-color 180ms ease;
+}
+
+.risk-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 6px;
+  background: var(--risk-tab-color);
+  border-radius: 16px;
+}
+
+.risk-tabs a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 6px;
+  color: #697386;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 11px;
+}
+
+.risk-tabs a span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  font-size: 12px;
+  background: #d8dee8;
+  border-radius: 50%;
+}
+
+.risk-tabs a.active {
+  color: var(--risk-color);
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(32 48 78 / 10%);
+}
+
+.risk-tabs a.active span { color: #fff; background: var(--risk-color); }
 
 .dashboard-card {
   background: #fff;
-  border: 1px solid #e3e7ed;
+  border: 1px solid var(--risk-border-color);
   border-radius: 24px;
-  box-shadow: 0 2px 4px rgb(32 48 78 / 8%);
+  box-shadow: 0 4px 14px var(--risk-shadow-color);
 }
 
 .map-card { padding: 24px; }
 .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .card-heading h2,
 .activity-card h2,
-.normal-status h2 { margin: 0; font-size: 20px; letter-spacing: -0.025em; }
-.card-heading time { color: #737b8b; font-size: 16px; white-space: nowrap; }
+.risk-status h2 { margin: 0; font-size: 20px; letter-spacing: -0.025em; }
+.card-heading time { color: var(--risk-color); font-size: 16px; white-space: nowrap; }
 
 .guardian-map-wrapper {
   position: relative;
   overflow: hidden;
-  background: #eef1f5;
+  background: var(--risk-map-color);
   border-radius: 25px;
 }
 
@@ -118,17 +208,17 @@ textarea {
   padding: 24px;
   color: #778195;
   text-align: center;
-  background: #eef1f5;
+  background: var(--risk-map-color);
 }
 
-.map-fallback strong { color: #34425a; font-size: 17px; }
+.map-fallback strong { color: var(--risk-color); font-size: 17px; }
 .map-fallback span { font-size: 14px; line-height: 1.5; }
 
 .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .summary-card { padding: 25px 23px 22px; }
 .summary-card p { margin: 0 0 9px; color: #9aa2b2; font-size: 16px; font-weight: 600; }
 .summary-card strong { display: block; margin-bottom: 8px; font-size: 29px; line-height: 1.1; letter-spacing: -0.025em; }
-.summary-card span { color: #3ba64d; font-size: 16px; }
+.summary-card span { color: var(--risk-color); font-size: 16px; }
 
 .activity-card { padding: 25px 23px 18px; }
 .activity-list { margin: 20px 0 0; padding: 0; list-style: none; }
@@ -141,7 +231,7 @@ textarea {
   width: 12px;
   height: 12px;
   content: "";
-  background: #54a85e;
+  background: var(--risk-color);
   border-radius: 50%;
 }
 
@@ -152,21 +242,21 @@ textarea {
   left: 6px;
   width: 2px;
   content: "";
-  background: #d2f0d7;
+  background: var(--risk-border-color);
 }
 
 .activity-list time { color: #9ba2b0; font-size: 17px; }
 .activity-list span { color: #34425a; font-size: 18px; }
 
-.normal-status {
+.risk-status {
   padding: 26px 23px;
-  color: #319448;
-  background: #f1fcf3;
-  border: 1px solid #d8f3dd;
+  color: var(--risk-color);
+  background: var(--risk-soft-color);
+  border: 1px solid var(--risk-border-color);
   border-radius: 24px;
 }
 
-.normal-status p { margin: 11px 0 0; font-size: 17px; line-height: 1.7; }
+.risk-status p { margin: 11px 0 0; font-size: 17px; line-height: 1.7; }
 
 @media (max-width: 480px) {
   .page-layout { width: calc(100% - 32px); margin: 24px auto; padding: 28px 22px; }
@@ -184,7 +274,7 @@ textarea {
   .activity-card { padding: 19px; }
   .card-heading h2,
   .activity-card h2,
-  .normal-status h2 { font-size: 17px; }
+  .risk-status h2 { font-size: 17px; }
   .card-heading time { font-size: 13px; }
   .guardian-map { height: 285px; }
   .summary-grid { gap: 12px; }
@@ -195,8 +285,8 @@ textarea {
   .activity-list li { grid-template-columns: 76px 1fr; gap: 10px; padding-left: 25px; }
   .activity-list time,
   .activity-list span,
-  .normal-status p { font-size: 14px; }
-  .normal-status { padding: 22px 19px; }
+  .risk-status p { font-size: 14px; }
+  .risk-status { padding: 22px 19px; }
 }
 
 @media (max-width: 360px) {
@@ -208,4 +298,6 @@ textarea {
   .guardian-person-row h1 { font-size: 24px; }
   .guardian-map { height: 245px; }
   .summary-card strong { font-size: 21px; }
+  .risk-tabs a { gap: 3px; font-size: 12px; }
+  .risk-tabs a span { width: 18px; height: 18px; font-size: 11px; }
 }
