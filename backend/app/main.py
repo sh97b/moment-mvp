@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from backend.app.ai.predictor import is_model_ready, predict_anomaly
 from backend.app.models.context import ContextParseRequest, ContextParseResponse
 from backend.app.models.replay import ReplayResponse
 from backend.app.models.scenario import ScenarioListResponse
@@ -57,7 +58,7 @@ app.add_middleware(
 
 
 loader = ScenarioLoader()
-replay_service = ReplayService(loader=loader)
+replay_service = ReplayService(loader=loader, predictor=predict_anomaly)
 
 
 # 예상 가능한 데이터 오류는 내부 경로나 스택 트레이스 없이 제어된 JSON으로 반환한다.
@@ -80,7 +81,7 @@ def health() -> dict[str, str | bool]:
     return {
         "status": "ok",
         "service": "moment-api",
-        "model_ready": False,
+        "model_ready": is_model_ready(),
         "gemini_available": bool(os.getenv("GEMINI_API_KEY")),
         "mock_fallback_available": True,
     }
