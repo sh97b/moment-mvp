@@ -242,7 +242,7 @@ export default function GuardianPage({
           </div>
           <div className="status-alert-title-row">
             <h2>{currentStatus.title}</h2>
-            {riskLevel >= 2 && !manualNormalLog && (
+            {riskLevel >= 2 && replayFinished && !manualNormalLog && (
                 <button
                   className="normal-outing-button"
                   type="button"
