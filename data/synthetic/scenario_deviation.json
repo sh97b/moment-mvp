@@ -1,0 +1,165 @@
+{
+  "scenario_id": "scenario_deviation",
+  "title": "시나리오 B: 일시 우회 후 귀가",
+  "description": "낙원상가 인근 골목 우회 후 큰길 복귀",
+  "target_elderly": "김정순 (만 78세)",
+  "frames": [
+    {
+      "frame_id": 1,
+      "timestamp": "2026-08-18T14:00:00",
+      "lat": 37.5752,
+      "lng": 126.9858,
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.5,
+        "total_distance_m": 500.0,
+        "max_deviation_from_home_m": 15.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
+      },
+      "realtime_movement_features": {
+        "turn_count": 2,
+        "revisit_count": 0,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "유지"
+      },
+      "anomaly_score": 0.04,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": null,
+      "guardian_alert": null
+    },
+    {
+      "frame_id": 2,
+      "timestamp": "2026-08-18T14:04:00",
+      "lat": 37.5746,
+      "lng": 126.9863,
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.57,
+        "total_distance_m": 610.0,
+        "max_deviation_from_home_m": 15.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
+      },
+      "realtime_movement_features": {
+        "turn_count": 2,
+        "revisit_count": 0,
+        "repeat_section": 1,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "감소"
+      },
+      "anomaly_score": 0.08,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": null,
+      "guardian_alert": null
+    },
+    {
+      "frame_id": 3,
+      "timestamp": "2026-08-18T14:08:00",
+      "lat": 37.5738,
+      "lng": 126.9882,
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.63,
+        "total_distance_m": 720.0,
+        "max_deviation_from_home_m": 165.0,
+        "return_time_diff_min": 10,
+        "stay_outside_living_area_min": 5
+      },
+      "realtime_movement_features": {
+        "turn_count": 5,
+        "revisit_count": 0,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 4,
+        "home_distance_trend": "증가"
+      },
+      "anomaly_score": 0.58,
+      "risk_level": 1,
+      "reasons": [
+        "방향전환 횟수 일시 증가",
+        "집과의 거리 일시 증가"
+      ],
+      "elderly_alert": "평소 다니시던 길이 아닙니다. 큰길 방향을 확인하세요.",
+      "guardian_alert": "일시적 경로 우회 감지 (주의 관찰)"
+    },
+    {
+      "frame_id": 4,
+      "timestamp": "2026-08-18T14:12:00",
+      "lat": 37.5731,
+      "lng": 126.9889,
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.7,
+        "total_distance_m": 830.0,
+        "max_deviation_from_home_m": 165.0,
+        "return_time_diff_min": 10,
+        "stay_outside_living_area_min": 5
+      },
+      "realtime_movement_features": {
+        "turn_count": 7,
+        "revisit_count": 1,
+        "repeat_section": 0,
+        "radius_stay_duration_min": 6,
+        "home_distance_trend": "유지"
+      },
+      "anomaly_score": 0.62,
+      "risk_level": 1,
+      "reasons": [
+        "우회 경로 지속"
+      ],
+      "elderly_alert": "종로3가역 큰길 방향으로 이동해 주세요.",
+      "guardian_alert": "일시적 우회 지속"
+    },
+    {
+      "frame_id": 5,
+      "timestamp": "2026-08-18T14:16:00",
+      "lat": 37.57245,
+      "lng": 126.9886,
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.77,
+        "total_distance_m": 940.0,
+        "max_deviation_from_home_m": 15.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
+      },
+      "realtime_movement_features": {
+        "turn_count": 8,
+        "revisit_count": 1,
+        "repeat_section": 1,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "감소"
+      },
+      "anomaly_score": 0.12,
+      "risk_level": 0,
+      "reasons": [
+        "정상 경로로 복귀함"
+      ],
+      "elderly_alert": "정상 경로로 복귀하셨습니다.",
+      "guardian_alert": "정상 경로 복귀 확인 (주의 해제)"
+    },
+    {
+      "frame_id": 6,
+      "timestamp": "2026-08-18T14:20:00",
+      "lat": 37.57182,
+      "lng": 126.98921,
+      "personal_lifestyle_features": {
+        "outing_duration_hr": 0.83,
+        "total_distance_m": 1050.0,
+        "max_deviation_from_home_m": 15.0,
+        "return_time_diff_min": 0,
+        "stay_outside_living_area_min": 0
+      },
+      "realtime_movement_features": {
+        "turn_count": 9,
+        "revisit_count": 1,
+        "repeat_section": 1,
+        "radius_stay_duration_min": 0,
+        "home_distance_trend": "감소"
+      },
+      "anomaly_score": 0.03,
+      "risk_level": 0,
+      "reasons": [],
+      "elderly_alert": "집에 도착하셨습니다.",
+      "guardian_alert": "안전 귀가 완료"
+    }
+  ]
+}
