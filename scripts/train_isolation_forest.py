@@ -154,7 +154,7 @@ def main():
     print(f"최소: {val_scores.min():.4f}")
     print(f"최대: {val_scores.max():.4f}")
 
-    
+
     # -----------------------------------------
     # 12. 정상 Validation 기준점 계산
     # -----------------------------------------
@@ -169,6 +169,40 @@ def main():
     print(f"P90: {p90:.4f}")
     print(f"P95: {p95:.4f}")
     print(f"P99: {p99:.4f}")
+
+    # -----------------------------------------
+    # 13. Feature 조합별 anomaly score 확인
+    # -----------------------------------------
+
+    score_df = X_val.copy()
+
+    score_df["anomaly_score"] = val_scores
+
+
+    combo_scores = (
+        score_df
+        .groupby(FEATURE_COLUMNS)
+        .agg(
+            count=("anomaly_score", "size"),
+            mean_score=("anomaly_score", "mean"),
+            min_score=("anomaly_score", "min"),
+            max_score=("anomaly_score", "max"),
+        )
+        .reset_index()
+        .sort_values(
+            "mean_score",
+            ascending=True,
+        )
+    )
+
+
+    print("\n=== Feature 조합별 anomaly score ===")
+
+    print(
+        combo_scores.to_string(
+            index=False
+        )
+    )
 
 
 
