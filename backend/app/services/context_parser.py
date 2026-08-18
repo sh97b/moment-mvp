@@ -1,7 +1,9 @@
-"""외부 네트워크 없이 생활패턴 문장을 결정적으로 구조화한다."""
+"""Gemini 파싱과 결정적 fallback을 API 계약에 맞게 제공한다."""
 
+import os
 import re
 
+from backend.app.ai.context.parser import parse_routine_text
 from backend.app.models.context import ContextParseResponse, DayCode, WeeklyPattern
 
 
@@ -135,3 +137,30 @@ def parse_context_fallback(text: str) -> ContextParseResponse:
         source="fallback",
         warnings=warnings,
     )
+
+
+def parse_context_with_fallback(text: str) -> ContextParseResponse:
+    """Gemini가 없거나 결과가 계약에 맞지 않으면 기존 fallback을 사용한다."""
+
+    if not os.getenv("GEMINI_API_KEY"):
+        return parse_context_fallback(text)
+
+    try:
+        parsed = parse_routine_text(text)
+        if not parsed.routines:
+            raise ValueError("Gemini가 생활패턴을 반환하지 않았습니다.")
+        return ContextParseResponse(
+            weekly_patterns=[
+                WeeklyPattern(
+                    days=routine.days,
+                    destination=routine.destination,
+                    departure_time=routine.time,
+                    return_time=routine.return_time,
+                )
+                for routine in parsed.routines
+            ],
+            source="gemini",
+            warnings=[],
+        )
+    except Exception:
+        return parse_context_fallback(text)

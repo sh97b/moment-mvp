@@ -1,7 +1,10 @@
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
+from backend.app.ai.context.parser import ParsedRoutineContext, Routine
+from backend.app.services import context_parser
 from backend.app.main import _cors_origins, app
 from backend.app.models.replay import ReplayResponse
 from backend.app.services.replay_service import ReplayService
@@ -9,6 +12,11 @@ from backend.app.services.scenario_loader import ScenarioLoader
 
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def disable_gemini_by_default(monkeypatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
 
 def test_health() -> None:
@@ -46,6 +54,65 @@ def test_context_parse_fallback_matches_contract_and_is_deterministic() -> None:
     assert first.json()["source"] == "fallback"
     assert first.json()["warnings"]
     assert set(first.json()) == {"weekly_patterns", "source", "warnings"}
+
+
+def test_context_parse_uses_gemini_and_matches_contract(monkeypatch) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-test-key")
+    monkeypatch.setattr(
+        context_parser,
+        "parse_routine_text",
+        lambda _text: ParsedRoutineContext(
+            routines=[
+                Routine(
+                    days=["TUE", "THU"],
+                    time="14:00",
+                    return_time="18:00",
+                    time_period="오후",
+                    destination="복지관",
+                    activity="복지관 방문",
+                )
+            ]
+        ),
+    )
+
+    response = client.post(
+        "/api/context/parse",
+        json={"text": "화요일과 목요일 오후 2시에 복지관에 갑니다."},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "weekly_patterns": [
+            {
+                "days": ["TUE", "THU"],
+                "destination": "복지관",
+                "departure_time": "14:00",
+                "return_time": "18:00",
+            }
+        ],
+        "source": "gemini",
+        "warnings": [],
+    }
+
+
+def test_context_parse_uses_existing_fallback_when_gemini_fails(monkeypatch) -> None:
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-test-key")
+
+    def fail_gemini(_text):
+        raise RuntimeError("quota exceeded")
+
+    monkeypatch.setattr(context_parser, "parse_routine_text", fail_gemini)
+    response = client.post(
+        "/api/context/parse",
+        json={
+            "text": "화요일과 목요일 오후 2시에 복지관에 가고 오후 6시에 귀가해요."
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["source"] == "fallback"
+    assert response.json()["weekly_patterns"][0]["departure_time"] == "14:00"
+    assert response.json()["weekly_patterns"][0]["return_time"] == "18:00"
 
 
 def test_context_parse_rejects_empty_or_whitespace_text() -> None:
