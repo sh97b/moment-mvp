@@ -58,11 +58,40 @@ function formatDistanceDelta(delta) {
   return `직전 위치 기록보다 ${Math.abs(Math.round(delta))}m ${delta > 0 ? '증가' : '감소'}`
 }
 
+function collectAlertLogs(frames) {
+  const alertsByContent = new Map()
+
+  frames.forEach((replayFrame) => {
+    const alerts = [
+      { kind: 'elderly', label: '고령자 안내', value: replayFrame.elderly_alert },
+      { kind: 'guardian', label: '보호자 알림', value: replayFrame.guardian_alert },
+    ]
+
+    alerts.forEach(({ kind, label, value }) => {
+      if (!value?.title || !value?.message) return
+
+      const contentKey = `${kind}:${value.title}:${value.message}`
+      if (alertsByContent.has(contentKey)) return
+
+      alertsByContent.set(contentKey, {
+        id: contentKey,
+        kind,
+        label,
+        title: value.title,
+        message: value.message,
+        timestamp: replayFrame.timestamp,
+      })
+    })
+  })
+
+  return Array.from(alertsByContent.values()).sort(
+    (first, second) => new Date(first.timestamp) - new Date(second.timestamp),
+  )
+}
+
 export default function GuardianPage({
   riskLevel,
   reasons,
-  guardianAlert,
-  elderlyAlert,
   frame,
   firstFrame,
   playedFrames,
@@ -85,6 +114,30 @@ export default function GuardianPage({
   const path = playedFrames.map(({ lat, lng }) => ({ lat, lng }))
   const currentPosition = { lat: frame.lat, lng: frame.lng }
   const replayFinished = currentFrameIndex === totalFrames - 1
+  const alertLogs = collectAlertLogs(playedFrames)
+  const currentStatus = frame.guardian_alert
+    ? { ...frame.guardian_alert, kind: 'guardian', label: '보호자 알림' }
+    : frame.elderly_alert
+      ? { ...frame.elderly_alert, kind: 'elderly', label: '고령자 안내' }
+      : {
+          kind: 'normal',
+          label: '현재 상태',
+          title: riskLevel === 0 ? '✓ 정상 이동 중입니다' : stage.title,
+          message: riskLevel === 0
+            ? '현재 확인된 평소와 다른 이동 징후가 없습니다.'
+            : stage.message,
+        }
+
+  const currentStatusContent = (
+    <>
+      <div className="status-alert-meta">
+        <span>{currentStatus.label}</span>
+        <time dateTime={frame.timestamp}>{formatClock(frame.timestamp)}</time>
+      </div>
+      <h2>{currentStatus.title}</h2>
+      <p>{currentStatus.message}</p>
+    </>
+  )
 
   return (
     <main className={`guardian-page risk-level-${riskLevel}`}>
@@ -162,6 +215,35 @@ export default function GuardianPage({
           </div>
         </section>
 
+        {alertLogs.length > 0 ? (
+          <details className={`status-alert-card status-alert-${currentStatus.kind}`}>
+            <summary>
+              {currentStatusContent}
+              <div className="alert-history-toggle">
+                <span>알림 기록 {alertLogs.length}건</span>
+                <strong>펼쳐보기</strong>
+              </div>
+            </summary>
+
+            <ol className="alert-history-list">
+              {[...alertLogs].reverse().map((alert) => (
+                <li key={alert.id} className={`alert-history-item alert-history-${alert.kind}`}>
+                  <div>
+                    <span>{alert.label}</span>
+                    <time dateTime={alert.timestamp}>{formatClock(alert.timestamp)}</time>
+                  </div>
+                  <strong>{alert.title}</strong>
+                  <p>{alert.message}</p>
+                </li>
+              ))}
+            </ol>
+          </details>
+        ) : (
+          <section className="status-alert-card status-alert-normal" role="status" aria-live="polite">
+            {currentStatusContent}
+          </section>
+        )}
+
         <section className="dashboard-card map-card" aria-labelledby="location-title">
           <div className="card-heading">
             <h2 id="location-title">현재 위치 및 이동 경로</h2>
@@ -200,26 +282,6 @@ export default function GuardianPage({
           )}
         </section>
 
-        {elderlyAlert && (
-          <section className="elderly-alert-card">
-            <span>고령자 안내</span>
-            <h2>{elderlyAlert.title}</h2>
-            <p>{elderlyAlert.message}</p>
-          </section>
-        )}
-
-        {guardianAlert && (
-          <section className="guardian-alert-card" role="alert">
-            <span>보호자 알림</span>
-            <h2>{guardianAlert.title}</h2>
-            <p>{guardianAlert.message}</p>
-          </section>
-        )}
-
-        <section className="risk-status" aria-live="polite">
-          <h2>{stage.title}</h2>
-          <p>{stage.message}</p>
-        </section>
       </div>
     </main>
   )

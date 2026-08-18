@@ -637,6 +637,7 @@ textarea {
 }
 
 .scenario-panel {
+  display: none;
   padding: 20px;
   background: #fff;
   border: 1px solid var(--risk-border-color);
@@ -743,10 +744,7 @@ textarea {
 .map-card { padding: 24px; }
 .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .card-heading h2,
-.analysis-card h2,
-.elderly-alert-card h2,
-.guardian-alert-card h2,
-.risk-status h2 { margin: 0; font-size: 20px; letter-spacing: -0.025em; }
+.analysis-card h2 { margin: 0; font-size: 20px; letter-spacing: -0.025em; }
 .card-heading time { color: var(--risk-color); font-size: 16px; white-space: nowrap; }
 
 .guardian-map-wrapper {
@@ -806,28 +804,117 @@ textarea {
 .reason-list li::before { position: absolute; top: 0.58em; left: 2px; width: 7px; height: 7px; content: ""; background: var(--risk-color); border-radius: 50%; }
 .empty-reasons { margin: 18px 0 0; color: #7c8799; font-size: 15px; }
 
-.elderly-alert-card,
-.guardian-alert-card {
-  padding: 23px;
-  border-radius: 22px;
-}
-
-.elderly-alert-card { color: #3153ae; background: #f1f5ff; border: 1px solid #d8e3fb; }
-.guardian-alert-card { color: var(--risk-color); background: var(--risk-soft-color); border: 2px solid var(--risk-border-color); box-shadow: 0 5px 16px var(--risk-shadow-color); }
-.elderly-alert-card > span,
-.guardian-alert-card > span { display: block; margin-bottom: 7px; font-size: 12px; font-weight: 800; }
-.elderly-alert-card p,
-.guardian-alert-card p { margin: 9px 0 0; font-size: 15px; line-height: 1.65; }
-
-.risk-status {
-  padding: 26px 23px;
+.status-alert-card {
+  overflow: hidden;
   color: var(--risk-color);
   background: var(--risk-soft-color);
-  border: 1px solid var(--risk-border-color);
-  border-radius: 24px;
+  border: 2px solid var(--risk-border-color);
+  border-radius: 22px;
+  box-shadow: 0 5px 16px var(--risk-shadow-color);
 }
 
-.risk-status p { margin: 11px 0 0; font-size: 17px; line-height: 1.7; }
+.status-alert-card.status-alert-normal {
+  padding: 23px;
+  color: #2f8f4a;
+  background: #eefaf1;
+  border-color: #cee9d4;
+  box-shadow: 0 5px 16px rgb(47 143 74 / 10%);
+}
+
+.status-alert-card.status-alert-elderly {
+  color: #3153ae;
+  background: #f1f5ff;
+  border-color: #d8e3fb;
+}
+
+.status-alert-card summary {
+  padding: 23px;
+  list-style: none;
+  cursor: pointer;
+}
+.status-alert-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.status-alert-meta span { font-size: 12px; font-weight: 800; }
+.status-alert-meta time { font-size: 12px; opacity: 0.68; }
+.status-alert-card h2 { margin: 8px 0 0; font-size: 20px; letter-spacing: -0.025em; }
+.status-alert-card p { margin: 9px 0 0; color: #465267; font-size: 15px; line-height: 1.65; }
+
+.status-alert-card summary::-webkit-details-marker { display: none; }
+
+.alert-history-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 15px;
+  padding-top: 12px;
+  color: #687386;
+  font-size: 12px;
+  border-top: 1px solid rgb(85 100 125 / 14%);
+}
+
+.alert-history-toggle strong { color: var(--risk-color); }
+.alert-history-toggle strong::after { display: inline-block; margin-left: 6px; content: "⌄"; transition: transform 150ms ease; }
+.status-alert-card[open] .alert-history-toggle strong { font-size: 0; }
+.status-alert-card[open] .alert-history-toggle strong::before { font-size: 12px; content: "접기"; }
+.status-alert-card[open] .alert-history-toggle strong::after { font-size: 12px; transform: rotate(180deg); }
+
+.alert-history-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 18px 18px;
+  list-style: none;
+  border-top: 1px solid rgb(85 100 125 / 14%);
+}
+
+.alert-history-item {
+  padding: 15px;
+  color: var(--risk-color);
+  background: rgb(255 255 255 / 68%);
+  border-radius: 14px;
+}
+
+.alert-history-item.alert-history-elderly { color: #3153ae; background: rgb(255 255 255 / 68%); }
+.alert-history-item > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.alert-history-item > div span { font-size: 11px; font-weight: 800; }
+.alert-history-item time { font-size: 11px; opacity: 0.68; }
+.alert-history-item > strong { display: block; margin-top: 7px; font-size: 14px; }
+.alert-history-item > p { margin: 6px 0 0; color: #596478; font-size: 13px; line-height: 1.55; }
+
+@media (min-width: 1200px) {
+  .guardian-content > .scenario-panel {
+    position: fixed;
+    top: 24px;
+    right: calc(50% + 310px);
+    z-index: 10;
+    display: block;
+    width: min(340px, calc(50vw - 330px));
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+
+  .guardian-content > .scenario-panel .scenario-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .guardian-content > .scenario-panel .scenario-tabs button {
+    min-height: 44px;
+    font-size: 13px;
+  }
+
+  .guardian-content > .scenario-panel .replay-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .guardian-content > .scenario-panel .replay-controls > div {
+    justify-content: space-between;
+  }
+
+  .guardian-content > .scenario-panel .replay-controls button {
+    flex: 1;
+  }
+}
 
 @media (max-width: 480px) {
   .role-header { padding: 42px 22px 28px; }
@@ -887,10 +974,7 @@ textarea {
   .map-card,
   .analysis-card { padding: 19px; }
   .card-heading h2,
-  .analysis-card h2,
-  .elderly-alert-card h2,
-  .guardian-alert-card h2,
-  .risk-status h2 { font-size: 17px; }
+  .analysis-card h2 { font-size: 17px; }
   .card-heading time { font-size: 13px; }
   .guardian-map { height: 285px; }
   .summary-grid { gap: 12px; }
@@ -905,13 +989,11 @@ textarea {
   .replay-controls > div { gap: 5px; }
   .replay-controls button { padding: 7px 8px; }
   .reason-list li,
-  .empty-reasons,
-  .elderly-alert-card p,
-  .guardian-alert-card p,
-  .risk-status p { font-size: 14px; }
-  .elderly-alert-card,
-  .guardian-alert-card,
-  .risk-status { padding: 22px 19px; }
+  .empty-reasons { font-size: 14px; }
+  .status-alert-card summary,
+  .status-alert-card.status-alert-normal { padding: 19px; }
+  .status-alert-card h2 { font-size: 17px; }
+  .status-alert-card p { font-size: 14px; }
 }
 
 @media (max-width: 360px) {
