@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom'
 const navigation = [
   { path: '/setup', label: '생활패턴 설정' },
   { path: '/guardian', label: '보호자 모니터링' },
-  { path: '/senior', label: '안심 안내' },
 ]
 
 export default function PageLayout({ title, description }) {

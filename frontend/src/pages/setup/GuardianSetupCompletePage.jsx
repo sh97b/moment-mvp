@@ -1,12 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import GuardianSetupHeader from '../../components/GuardianSetupHeader.jsx'
 import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
-import {
-  createSeniorConnectionCode,
-  readSeniorLinkCookie,
-  saveSeniorLinkCookie,
-} from '../../utils/seniorLinkCookie.js'
 
 function formatReturnTime(value) {
   const hour = Number(value.split(':')[0])
@@ -17,17 +11,6 @@ function formatReturnTime(value) {
 
 export default function GuardianSetupCompletePage() {
   const { setup } = useGuardianSetup()
-  const personName = setup.personName.trim()
-  const [connectionCode] = useState(() => {
-    const savedLink = readSeniorLinkCookie()
-    return savedLink?.personName === personName
-      ? savedLink.code
-      : createSeniorConnectionCode()
-  })
-
-  useEffect(() => {
-    saveSeniorLinkCookie(personName, connectionCode)
-  }, [connectionCode, personName])
 
   return (
     <main className="guardian-setup-page">
@@ -67,16 +50,6 @@ export default function GuardianSetupCompletePage() {
           <strong>이 Context는 초기 기준입니다</strong>
           <p>합성 이동 기록이 쌓이면 GPS Feature를 기반으로 개인 정상 이동 Baseline을 별도로 구성합니다. AI가 위험 여부를 직접 결정하지는 않습니다.</p>
         </aside>
-
-        <section className="senior-connection-code" aria-labelledby="connection-code-title">
-          <span id="connection-code-title">고령자 연결 코드</span>
-          <strong aria-label={`연결 코드 ${connectionCode}`}>
-            {connectionCode.split('').map((character, index) => (
-              <span key={`${character}-${index}`}>{character}</span>
-            ))}
-          </strong>
-          <p>고령자 화면에서 이 코드를 입력해 주세요.</p>
-        </section>
 
         <Link className="setup-primary-action" to="/guardian">MOMENT 시작하기</Link>
       </div>

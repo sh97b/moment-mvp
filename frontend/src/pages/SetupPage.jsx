@@ -18,21 +18,13 @@ export default function SetupPage() {
         <nav className="role-actions" aria-label="사용자 유형 선택">
           <Link className="role-button guardian-role" to="/setup/1">
             <span className="role-icon" aria-hidden="true">보</span>
-            <span className="role-button-copy">s
+            <span className="role-button-copy">
               <strong>보호자</strong>
               <small>이동 상태 확인하기</small>
             </span>
             <span className="role-arrow" aria-hidden="true">→</span>
           </Link>
 
-          <Link className="role-button senior-role" to="/senior">
-            <span className="role-icon" aria-hidden="true">고</span>
-            <span className="role-button-copy">
-              <strong>고령자</strong>
-              <small>안심 안내 확인하기</small>
-            </span>
-            <span className="role-arrow" aria-hidden="true">→</span>
-          </Link>
         </nav>
       </section>
 
