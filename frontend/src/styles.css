@@ -1,8 +1,211 @@
-:root { font-family: system-ui, sans-serif; color: #172033; background: #f3f6fb; }
-body { margin: 0; min-width: 320px; min-height: 100vh; display: grid; place-items: center; }
-main { width: min(680px, calc(100% - 48px)); padding: 48px; background: white; border-radius: 24px; box-shadow: 0 16px 50px #18315318; }
-.eyebrow { color: #3468d4; font-weight: 800; letter-spacing: .12em; }
-h1 { font-size: clamp(2rem, 6vw, 3.5rem); margin: .25rem 0 1rem; }
-nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0; }
-a { color: white; background: #3468d4; padding: 10px 14px; border-radius: 10px; text-decoration: none; }
-small { color: #697386; }
+:root {
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #142039;
+  background: #e9edf4;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+.page-layout {
+  width: min(680px, calc(100% - 48px));
+  margin: 48px auto;
+  padding: 48px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 16px 50px #18315318;
+}
+
+.page-layout .eyebrow { color: #3468d4; font-weight: 800; letter-spacing: 0.12em; }
+.page-layout h1 { margin: 0.25rem 0 1rem; font-size: clamp(2rem, 6vw, 3.5rem); }
+.page-layout nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0; }
+.page-layout a { padding: 10px 14px; color: #fff; text-decoration: none; background: #3468d4; border-radius: 10px; }
+.page-layout a.active { background: #172033; }
+.page-layout small { color: #697386; }
+
+.guardian-page {
+  width: min(100%, 580px);
+  min-height: 100vh;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #f5f7fa;
+  box-shadow: 0 0 36px rgb(29 48 86 / 12%);
+}
+
+.guardian-hero {
+  padding: 72px 28px 32px;
+  color: #fff;
+  background: #3f5fa9;
+}
+
+.guardian-brand-row,
+.guardian-person-row,
+.guardian-brand,
+.live-badge,
+.risk-badge { display: flex; align-items: center; }
+
+.guardian-brand-row,
+.guardian-person-row { justify-content: space-between; gap: 20px; }
+
+.guardian-brand { gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: 0.02em; }
+
+.guardian-brand-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  font-size: 17px;
+  background: rgb(255 255 255 / 20%);
+  border-radius: 9px;
+}
+
+.live-badge,
+.risk-badge { flex: 0 0 auto; gap: 10px; font-weight: 700; border-radius: 999px; }
+.live-badge { padding: 11px 18px; font-size: 17px; background: rgb(255 255 255 / 16%); }
+.status-dot { width: 12px; height: 12px; background: #65d174; border-radius: 50%; }
+.guardian-person-row { align-items: flex-end; margin-top: 24px; }
+.guardian-label { margin: 0 0 5px; color: #cbd7f2; font-size: 19px; }
+.guardian-person-row h1 { margin: 0; font-size: 34px; line-height: 1.25; letter-spacing: -0.03em; }
+.risk-badge { margin-bottom: 1px; padding: 10px 17px; color: #258c42; font-size: 19px; background: #ecfff1; }
+
+.guardian-content { display: grid; gap: 22px; padding: 24px 20px 28px; }
+
+.dashboard-card {
+  background: #fff;
+  border: 1px solid #e3e7ed;
+  border-radius: 24px;
+  box-shadow: 0 2px 4px rgb(32 48 78 / 8%);
+}
+
+.map-card { padding: 24px; }
+.card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.card-heading h2,
+.activity-card h2,
+.normal-status h2 { margin: 0; font-size: 20px; letter-spacing: -0.025em; }
+.card-heading time { color: #737b8b; font-size: 16px; white-space: nowrap; }
+
+.guardian-map-wrapper {
+  position: relative;
+  overflow: hidden;
+  background: #eef1f5;
+  border-radius: 25px;
+}
+
+.guardian-map { width: 100%; height: 335px; }
+
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  color: #778195;
+  text-align: center;
+  background: #eef1f5;
+}
+
+.map-fallback strong { color: #34425a; font-size: 17px; }
+.map-fallback span { font-size: 14px; line-height: 1.5; }
+
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.summary-card { padding: 25px 23px 22px; }
+.summary-card p { margin: 0 0 9px; color: #9aa2b2; font-size: 16px; font-weight: 600; }
+.summary-card strong { display: block; margin-bottom: 8px; font-size: 29px; line-height: 1.1; letter-spacing: -0.025em; }
+.summary-card span { color: #3ba64d; font-size: 16px; }
+
+.activity-card { padding: 25px 23px 18px; }
+.activity-list { margin: 20px 0 0; padding: 0; list-style: none; }
+.activity-list li { position: relative; display: grid; grid-template-columns: 94px 1fr; gap: 14px; min-height: 55px; padding-left: 30px; }
+
+.activity-list li::before {
+  position: absolute;
+  top: 5px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  content: "";
+  background: #54a85e;
+  border-radius: 50%;
+}
+
+.activity-list li:not(:last-child)::after {
+  position: absolute;
+  top: 20px;
+  bottom: 1px;
+  left: 6px;
+  width: 2px;
+  content: "";
+  background: #d2f0d7;
+}
+
+.activity-list time { color: #9ba2b0; font-size: 17px; }
+.activity-list span { color: #34425a; font-size: 18px; }
+
+.normal-status {
+  padding: 26px 23px;
+  color: #319448;
+  background: #f1fcf3;
+  border: 1px solid #d8f3dd;
+  border-radius: 24px;
+}
+
+.normal-status p { margin: 11px 0 0; font-size: 17px; line-height: 1.7; }
+
+@media (max-width: 480px) {
+  .page-layout { width: calc(100% - 32px); margin: 24px auto; padding: 28px 22px; }
+  .guardian-hero { padding: 45px 20px 27px; }
+  .guardian-brand { gap: 8px; font-size: 20px; }
+  .guardian-brand-mark { width: 32px; height: 32px; }
+  .live-badge { gap: 7px; padding: 9px 12px; font-size: 14px; }
+  .guardian-person-row h1 { font-size: 28px; }
+  .guardian-label,
+  .risk-badge { font-size: 16px; }
+  .risk-badge { gap: 7px; padding: 8px 12px; }
+  .status-dot { width: 10px; height: 10px; }
+  .guardian-content { gap: 17px; padding: 20px 14px 24px; }
+  .map-card,
+  .activity-card { padding: 19px; }
+  .card-heading h2,
+  .activity-card h2,
+  .normal-status h2 { font-size: 17px; }
+  .card-heading time { font-size: 13px; }
+  .guardian-map { height: 285px; }
+  .summary-grid { gap: 12px; }
+  .summary-card { padding: 21px 17px 19px; }
+  .summary-card p,
+  .summary-card span { font-size: 13px; }
+  .summary-card strong { font-size: 24px; }
+  .activity-list li { grid-template-columns: 76px 1fr; gap: 10px; padding-left: 25px; }
+  .activity-list time,
+  .activity-list span,
+  .normal-status p { font-size: 14px; }
+  .normal-status { padding: 22px 19px; }
+}
+
+@media (max-width: 360px) {
+  .guardian-brand-row,
+  .guardian-person-row { gap: 10px; }
+  .guardian-brand { font-size: 18px; }
+  .live-badge,
+  .risk-badge { font-size: 12px; }
+  .guardian-person-row h1 { font-size: 24px; }
+  .guardian-map { height: 245px; }
+  .summary-card strong { font-size: 21px; }
+}
