@@ -29,7 +29,7 @@ export default function GuardianSetupPatternPage() {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    navigate('/setup/guardian/complete')
+    navigate('/setup/4')
   }
 
   return (

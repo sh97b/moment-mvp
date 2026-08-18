@@ -16,7 +16,7 @@ export default function SetupPage() {
         <p className="role-description">사용자의 유형을 골라주세요</p>
 
         <nav className="role-actions" aria-label="사용자 유형 선택">
-          <Link className="role-button guardian-role" to="/setup/guardian/basic">
+          <Link className="role-button guardian-role" to="/setup/1">
             <span className="role-icon" aria-hidden="true">보</span>
             <span className="role-button-copy">
               <strong>보호자</strong>

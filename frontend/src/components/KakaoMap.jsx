@@ -1,9 +1,44 @@
 import { useEffect, useRef, useState } from 'react'
 
 const KAKAO_MAP_SCRIPT_ID = 'kakao-map-sdk'
-const DEMO_CENTER = { lat: 33.450701, lng: 126.570667 }
+const SETUP_PREVIEW_CENTER = { lat: 37.5665, lng: 126.978 }
+const ROUTE_PADDING = 44
+const KAKAO_MAX_LEVEL = 14
+const SINGLE_POINT_MAX_LEVEL = 4
 
 let kakaoMapsPromise
+
+function isCoordinate(position) {
+  return Number.isFinite(position?.lat) && Number.isFinite(position?.lng)
+}
+
+function fitMapToRoute(map, path, currentPosition) {
+  if (!map || !window.kakao?.maps) return
+
+  const coordinates = path.filter(isCoordinate)
+  if (coordinates.length >= 2) {
+    // 이전 경로의 제한을 먼저 풀어 새 누적 경로에 맞는 레벨을 계산한다.
+    map.setMaxLevel(KAKAO_MAX_LEVEL)
+    const bounds = new window.kakao.maps.LatLngBounds()
+    coordinates.forEach(({ lat, lng }) => {
+      bounds.extend(new window.kakao.maps.LatLng(lat, lng))
+    })
+    map.setBounds(
+      bounds,
+      ROUTE_PADDING,
+      ROUTE_PADDING,
+      ROUTE_PADDING,
+      ROUTE_PADDING,
+    )
+    map.setMaxLevel(map.getLevel())
+    return
+  }
+
+  if (isCoordinate(currentPosition)) {
+    map.setCenter(new window.kakao.maps.LatLng(currentPosition.lat, currentPosition.lng))
+    map.setMaxLevel(SINGLE_POINT_MAX_LEVEL)
+  }
+}
 
 function loadKakaoMapsSdk(appKey) {
   if (window.kakao?.maps) {
@@ -18,12 +53,10 @@ function loadKakaoMapsSdk(appKey) {
         reject(new Error('Kakao Maps SDK를 불러오지 못했습니다.'))
         return
       }
-
       window.kakao.maps.load(resolve)
     }
 
     const existingScript = document.getElementById(KAKAO_MAP_SCRIPT_ID)
-
     if (existingScript) {
       existingScript.addEventListener('load', loadMaps, { once: true })
       existingScript.addEventListener(
@@ -50,10 +83,18 @@ function loadKakaoMapsSdk(appKey) {
   return kakaoMapsPromise
 }
 
-export default function KakaoMap() {
+export default function KakaoMap({ currentPosition = null, path = [] }) {
   const mapContainerRef = useRef(null)
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
+  const polylineRef = useRef(null)
+  const latestPositionRef = useRef(currentPosition)
+  const latestPathRef = useRef(path)
   const [status, setStatus] = useState('loading')
   const appKey = import.meta.env.VITE_KAKAO_MAP_KEY?.trim()
+
+  latestPositionRef.current = currentPosition
+  latestPathRef.current = path
 
   useEffect(() => {
     if (!appKey) {
@@ -63,22 +104,33 @@ export default function KakaoMap() {
 
     let isMounted = true
     let resizeObserver
+    let resizeFrame
 
     loadKakaoMapsSdk(appKey)
       .then(() => {
         if (!isMounted || !mapContainerRef.current) return
 
-        const center = new window.kakao.maps.LatLng(DEMO_CENTER.lat, DEMO_CENTER.lng)
+        const initialPosition = isCoordinate(latestPositionRef.current)
+          ? latestPositionRef.current
+          : SETUP_PREVIEW_CENTER
+        const center = new window.kakao.maps.LatLng(initialPosition.lat, initialPosition.lng)
         const map = new window.kakao.maps.Map(mapContainerRef.current, {
           center,
           level: 4,
         })
+        map.setZoomable(true)
 
-        resizeObserver = new ResizeObserver(() => {
-          map.relayout()
-          map.setCenter(center)
-        })
-        resizeObserver.observe(mapContainerRef.current)
+        mapRef.current = map
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver(() => {
+            map.relayout()
+            window.cancelAnimationFrame(resizeFrame)
+            resizeFrame = window.requestAnimationFrame(() => {
+              fitMapToRoute(map, latestPathRef.current, latestPositionRef.current)
+            })
+          })
+          resizeObserver.observe(mapContainerRef.current)
+        }
         setStatus('ready')
       })
       .catch(() => {
@@ -88,15 +140,62 @@ export default function KakaoMap() {
     return () => {
       isMounted = false
       resizeObserver?.disconnect()
+      window.cancelAnimationFrame(resizeFrame)
+      markerRef.current?.setMap(null)
+      polylineRef.current?.setMap(null)
+      markerRef.current = null
+      polylineRef.current = null
+      mapRef.current = null
     }
   }, [appKey])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (status !== 'ready' || !map || !window.kakao?.maps) return
+
+    if (isCoordinate(currentPosition)) {
+      const markerPosition = new window.kakao.maps.LatLng(
+        currentPosition.lat,
+        currentPosition.lng,
+      )
+
+      if (!markerRef.current) {
+        markerRef.current = new window.kakao.maps.Marker({
+          map,
+          position: markerPosition,
+        })
+      } else {
+        markerRef.current.setPosition(markerPosition)
+      }
+    }
+
+    const linePath = path
+      .filter(isCoordinate)
+      .map(({ lat, lng }) => new window.kakao.maps.LatLng(lat, lng))
+
+    fitMapToRoute(map, path, currentPosition)
+
+    if (!polylineRef.current && linePath.length >= 2) {
+      polylineRef.current = new window.kakao.maps.Polyline({
+        map,
+        path: linePath,
+        strokeWeight: 5,
+        strokeColor: '#3f5fa9',
+        strokeOpacity: 0.85,
+        strokeStyle: 'solid',
+      })
+    } else if (polylineRef.current) {
+      polylineRef.current.setPath(linePath)
+    }
+  }, [currentPosition, path, status])
 
   return (
     <div className="guardian-map-wrapper">
       <div
         ref={mapContainerRef}
         className="guardian-map"
-        aria-label="카카오 지도"
+        role="img"
+        aria-label="현재 frame 위치와 지금까지의 합성 이동 경로를 표시한 카카오 지도"
       />
 
       {status !== 'ready' && (

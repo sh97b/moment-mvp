@@ -9,7 +9,7 @@ export default function GuardianSetupBasicPage() {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    navigate('/setup/guardian/places')
+    navigate('/setup/2')
   }
 
   return (
