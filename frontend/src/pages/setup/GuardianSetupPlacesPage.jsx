@@ -4,6 +4,38 @@ import GuardianSetupHeader from '../../components/GuardianSetupHeader.jsx'
 import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
 import { searchKakaoLocations } from '../../utils/kakaoLocationSearch.js'
 
+const MAX_PLACE_DISTANCE_KM = 30
+const EARTH_RADIUS_KM = 6371
+
+function isCoordinate(position) {
+  return Number.isFinite(position?.lat) && Number.isFinite(position?.lng)
+}
+
+function toRadians(degrees) {
+  return degrees * (Math.PI / 180)
+}
+
+function getDistanceKm(start, end) {
+  if (!isCoordinate(start) || !isCoordinate(end)) return null
+
+  const latitudeDelta = toRadians(end.lat - start.lat)
+  const longitudeDelta = toRadians(end.lng - start.lng)
+  const startLatitude = toRadians(start.lat)
+  const endLatitude = toRadians(end.lat)
+  const haversine = (
+    Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(startLatitude) * Math.cos(endLatitude) * Math.sin(longitudeDelta / 2) ** 2
+  )
+
+  return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+}
+
+function formatDistance(distanceKm) {
+  if (!Number.isFinite(distanceKm)) return '거리 확인 불가'
+  if (distanceKm < 1) return `집에서 ${Math.round(distanceKm * 1000)}m`
+  return `집에서 ${distanceKm.toFixed(1)}km`
+}
+
 export default function GuardianSetupPlacesPage() {
   const navigate = useNavigate()
   const { setup, updateField } = useGuardianSetup()
@@ -79,6 +111,21 @@ export default function GuardianSetupPlacesPage() {
   }, [activePlaceIndex, placeEdited, runPlaceSearch, setup.places])
 
   const selectPlace = (index, location) => {
+    if (!isCoordinate(setup.homePosition)) {
+      setSearchStatus('error')
+      setSearchMessage('집 위치를 먼저 검색해 선택해 주세요.')
+      return
+    }
+
+    const distanceKm = getDistanceKm(setup.homePosition, location)
+    if (!Number.isFinite(distanceKm) || distanceKm > MAX_PLACE_DISTANCE_KM) {
+      setSearchStatus('error')
+      setSearchMessage(
+        `${formatDistance(distanceKm)} 떨어져 있어 주요 장소로 등록할 수 없습니다. ${MAX_PLACE_DISTANCE_KM}km 이내의 데모용 장소를 선택해 주세요.`,
+      )
+      return
+    }
+
     requestIdRef.current += 1
     updateField('places', setup.places.map((place, itemIndex) => (
       itemIndex === index ? location.name : place
@@ -88,6 +135,7 @@ export default function GuardianSetupPlacesPage() {
       address: location.address,
       lat: location.lat,
       lng: location.lng,
+      homeDistanceKm: distanceKm,
     })
     setSuggestions([])
     setSearchStatus('selected')
@@ -119,6 +167,37 @@ export default function GuardianSetupPlacesPage() {
 
   const handleSubmit = (event) => {
     event.preventDefault()
+
+    if (!isCoordinate(setup.homePosition)) {
+      setActivePlaceIndex(0)
+      setSearchStatus('error')
+      setSearchMessage('집 위치를 먼저 검색해 선택해 주세요.')
+      return
+    }
+
+    const locations = setup.placeLocations ?? []
+    const missingLocationIndex = setup.places.findIndex(
+      (place, index) => place.trim() && !isCoordinate(locations[index]),
+    )
+    if (missingLocationIndex >= 0) {
+      setActivePlaceIndex(missingLocationIndex)
+      setSearchStatus('error')
+      setSearchMessage('입력한 장소를 검색 결과에서 선택해 주세요.')
+      return
+    }
+
+    const invalidLocationIndex = locations.findIndex((location) => {
+      if (!isCoordinate(location)) return false
+      const distanceKm = getDistanceKm(setup.homePosition, location)
+      return !Number.isFinite(distanceKm) || distanceKm > MAX_PLACE_DISTANCE_KM
+    })
+    if (invalidLocationIndex >= 0) {
+      setActivePlaceIndex(invalidLocationIndex)
+      setSearchStatus('error')
+      setSearchMessage(`집에서 ${MAX_PLACE_DISTANCE_KM}km 이내의 주요 장소만 등록할 수 있습니다.`)
+      return
+    }
+
     navigate('/setup/3')
   }
 
@@ -130,7 +209,7 @@ export default function GuardianSetupPlacesPage() {
         <div className="setup-form-content">
           <div className="setup-section-heading">
             <h2>자주 방문하는 주요 장소</h2>
-            <p>병원, 복지관, 공원처럼 평소 자주 가는 데모용 장소를 검색해 등록해 주세요.</p>
+            <p>병원, 복지관, 공원처럼 평소 자주 가는 집 반경 30km 이내의 데모용 장소를 등록해 주세요.</p>
           </div>
 
           <div className="place-list">
@@ -183,14 +262,29 @@ export default function GuardianSetupPlacesPage() {
                         role="listbox"
                         aria-label={`${index + 1}번째 주요 장소 검색 결과`}
                       >
-                        {suggestions.map((location) => (
-                          <li key={location.id} role="option" aria-selected="false">
-                            <button type="button" onClick={() => selectPlace(index, location)}>
-                              <strong>{location.name}</strong>
-                              <span>{location.address}</span>
-                            </button>
-                          </li>
-                        ))}
+                        {suggestions.map((location) => {
+                          const distanceKm = getDistanceKm(setup.homePosition, location)
+                          const isOutsideRange = !Number.isFinite(distanceKm)
+                            || distanceKm > MAX_PLACE_DISTANCE_KM
+
+                          return (
+                            <li key={location.id} role="option" aria-selected="false">
+                              <button
+                                type="button"
+                                onClick={() => selectPlace(index, location)}
+                                disabled={isOutsideRange}
+                                title={isOutsideRange ? `집 반경 ${MAX_PLACE_DISTANCE_KM}km 밖의 장소입니다.` : undefined}
+                              >
+                                <strong>{location.name}</strong>
+                                <span>{location.address}</span>
+                                <em className={isOutsideRange ? 'outside-range' : undefined}>
+                                  {formatDistance(distanceKm)}
+                                  {isOutsideRange ? ' · 선택 불가' : ''}
+                                </em>
+                              </button>
+                            </li>
+                          )
+                        })}
                       </ul>
                     )}
 

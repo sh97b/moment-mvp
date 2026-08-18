@@ -324,6 +324,10 @@ textarea {
 .location-suggestions button:focus-visible { background: #eef3ff; outline: none; }
 .location-suggestions strong { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
 .location-suggestions span { overflow: hidden; color: #70798b; font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.location-suggestions em { color: #3f5fa9; font-size: 12px; font-style: normal; font-weight: 700; }
+.location-suggestions em.outside-range { color: #b83242; }
+.location-suggestions button:disabled { cursor: not-allowed; opacity: 0.58; }
+.location-suggestions button:disabled:hover { background: transparent; }
 
 .location-search-message { margin: -2px 2px 0; color: #70798b; font-size: 13px; font-weight: 500; line-height: 1.5; }
 .location-search-selected { color: #2f8f4a; }
