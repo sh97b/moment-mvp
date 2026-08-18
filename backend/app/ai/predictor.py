@@ -30,23 +30,76 @@ with open(
     metadata = json.load(f)
 
 
-FEATURE_COLUMNS = metadata["features"]
+# =========================================
+# Fallback 기본값
+# =========================================
 
-TURN_NORMAL_MAX = metadata[
-    "normal_feature_max"
-]["turn_10min"]
+DEFAULT_FEATURE_COLUMNS = [
+    "turn_10min",
+    "revisit_15min",
+]
 
-REVISIT_NORMAL_MAX = metadata[
-    "normal_feature_max"
-]["revisit_15min"]
+FALLBACK_TURN_NORMAL_MAX = 4
+FALLBACK_REVISIT_NORMAL_MAX = 1
 
-P95 = metadata[
-    "anomaly_score_thresholds"
-]["p95"]
 
-P99 = metadata[
-    "anomaly_score_thresholds"
-]["p99"]
+# =========================================
+# 모델 / Metadata 로드
+# =========================================
+
+model = None
+metadata = {}
+
+MODEL_MODE = "rule_fallback"
+
+try:
+    model = joblib.load(MODEL_PATH)
+
+    with open(
+        META_PATH,
+        "r",
+        encoding="utf-8",
+    ) as f:
+        metadata = json.load(f)
+
+    MODEL_MODE = "isolation_forest"
+
+except Exception as e:
+    print(
+        "[AI WARNING] Isolation Forest 로드 실패. "
+        f"Rule fallback을 사용합니다: {e}"
+    )
+
+
+FEATURE_COLUMNS = metadata.get(
+    "features",
+    DEFAULT_FEATURE_COLUMNS,
+)
+
+
+normal_feature_max = metadata.get(
+    "normal_feature_max",
+    {},
+)
+
+TURN_NORMAL_MAX = normal_feature_max.get(
+    "turn_10min",
+    FALLBACK_TURN_NORMAL_MAX,
+)
+
+REVISIT_NORMAL_MAX = normal_feature_max.get(
+    "revisit_15min",
+    FALLBACK_REVISIT_NORMAL_MAX,
+)
+
+
+thresholds = metadata.get(
+    "anomaly_score_thresholds",
+    {},
+)
+
+P95 = thresholds.get("p95")
+P99 = thresholds.get("p99")
 
 
 # =========================================
@@ -86,11 +139,31 @@ def predict_anomaly(
     # score_samples는 낮을수록 이상하므로
     # -를 붙여 우리 프로젝트에서는
     # 높을수록 이상하도록 사용
-    anomaly_score = float(
-        -model.score_samples(
-            current[FEATURE_COLUMNS]
-        )[0]
-    )
+    # Isolation Forest 사용 가능 시
+    if model is not None:
+        anomaly_score = float(
+            -model.score_samples(
+                current[FEATURE_COLUMNS]
+            )[0]
+        )
+
+        is_unusual = (
+            anomaly_score >= P95
+            if P95 is not None
+            else None
+        )
+
+        is_very_unusual = (
+            anomaly_score >= P99
+            if P99 is not None
+            else None
+        )
+
+    # 모델 사용 불가능 시 Rule fallback
+    else:
+        anomaly_score = None
+        is_unusual = None
+        is_very_unusual = None
 
 
     # 4. 각 Feature가 정상 Baseline을
@@ -126,6 +199,8 @@ def predict_anomaly(
 
         # Isolation Forest 기준은
         # 참고 정보로 유지
-        "is_unusual": anomaly_score >= P95,
-        "is_very_unusual": anomaly_score >= P99,
+        "is_unusual": is_unusual,
+        "is_very_unusual": is_very_unusual,
+
+        "model_mode": MODEL_MODE,
     }
