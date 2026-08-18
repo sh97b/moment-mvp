@@ -202,12 +202,15 @@ export function loadKakaoMapsSdk(appKey) {
 export default function KakaoMap({
   currentPosition = null,
   path = EMPTY_PATH,
+  markers = [],
+  currentMarkerTitle = '현재 위치',
   ariaLabel = '현재 frame 위치와 지금까지의 합성 이동 경로를 표시한 카카오 지도',
   interactive = true,
 }) {
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
+  const markerRefsRef = useRef([])
   const polylineRef = useRef(null)
   const latestPositionRef = useRef(currentPosition)
   const latestPathRef = useRef(path)
@@ -336,28 +339,81 @@ export default function KakaoMap({
     const map = mapRef.current
     if (status !== 'ready' || !map || !window.kakao?.maps) return
 
-    if (isCoordinate(currentPosition)) {
-      const markerPosition = new window.kakao.maps.LatLng(
-        currentPosition.lat,
-        currentPosition.lng,
-      )
+    const explicitMarkers = Array.isArray(markers) && markers.length > 0
+      ? markers.filter(({ position }) => isCoordinate(position))
+      : []
 
-      if (!markerRef.current) {
-        markerRef.current = new window.kakao.maps.Marker({
-          map,
-          position: markerPosition,
-        })
-      } else {
-        markerRef.current.setPosition(markerPosition)
-      }
-    } else if (markerRef.current) {
+    const normalizedMarkers = explicitMarkers.length > 0
+      ? explicitMarkers.map(({ position, color = '#2d6cdf', title }) => ({
+          position,
+          color,
+          title,
+        }))
+      : (isCoordinate(currentPosition)
+        ? [{ position: currentPosition, color: '#2d6cdf', title: currentMarkerTitle }]
+        : [])
+
+    markerRefsRef.current.forEach((marker) => marker.setMap(null))
+    markerRefsRef.current = normalizedMarkers.map(({ position, color, title }) => {
+      const marker = new window.kakao.maps.Marker({
+        map,
+        position: new window.kakao.maps.LatLng(position.lat, position.lng),
+        title,
+        image: new window.kakao.maps.MarkerImage(
+          `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+              <circle cx="11" cy="11" r="9" fill="${color}" stroke="#ffffff" stroke-width="3"/>
+            </svg>
+          `)}`,
+          new window.kakao.maps.Size(22, 22),
+          { offset: new window.kakao.maps.Point(11, 11) },
+        ),
+      })
+
+      return marker
+    })
+
+    if (markerRef.current) {
       markerRef.current.setMap(null)
       markerRef.current = null
+    }
+
+    if (normalizedMarkers.length > 0 && !explicitMarkers.length) {
+      markerRef.current = markerRefsRef.current[0]
     }
 
     const linePath = path
       .filter(isCoordinate)
       .map(({ lat, lng }) => new window.kakao.maps.LatLng(lat, lng))
+
+    if (normalizedMarkers.length > 1) {
+      const bounds = new window.kakao.maps.LatLngBounds()
+      normalizedMarkers.forEach(({ position }) => {
+        bounds.extend(new window.kakao.maps.LatLng(position.lat, position.lng))
+      })
+      map.setBounds(bounds, 36, 36, 36, 36)
+      map.setMinLevel(3)
+      map.setMaxLevel(8)
+      constraintSuspendedRef.current = true
+      routeFitLevelRef.current = map.getLevel()
+      lastValidViewRef.current = getMapView(map)
+      window.requestAnimationFrame(() => {
+        constraintSuspendedRef.current = false
+      })
+      if (!polylineRef.current && linePath.length >= 2) {
+        polylineRef.current = new window.kakao.maps.Polyline({
+          map,
+          path: linePath,
+          strokeWeight: 5,
+          strokeColor: '#3f5fa9',
+          strokeOpacity: 0.85,
+          strokeStyle: 'solid',
+        })
+      } else if (polylineRef.current) {
+        polylineRef.current.setPath(linePath)
+      }
+      return
+    }
 
     if (!interactive && isCoordinate(currentPosition)) {
       const focusedCenter = new window.kakao.maps.LatLng(currentPosition.lat, currentPosition.lng)
@@ -393,7 +449,7 @@ export default function KakaoMap({
     } else if (polylineRef.current) {
       polylineRef.current.setPath(linePath)
     }
-  }, [currentPosition, path, status, interactive])
+  }, [currentPosition, path, markers, status, interactive])
 
   return (
     <div className="guardian-map-wrapper">

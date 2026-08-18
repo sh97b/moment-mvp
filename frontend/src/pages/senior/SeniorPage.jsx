@@ -200,6 +200,7 @@ export default function SeniorPage() {
           <KakaoMap
             currentPosition={{ lat: frame.lat, lng: frame.lng }}
             path={path}
+            currentMarkerTitle="현재 위치"
             ariaLabel="현재 위치와 이동 경로를 함께 보여주는 카카오 지도"
             interactive={false}
           />

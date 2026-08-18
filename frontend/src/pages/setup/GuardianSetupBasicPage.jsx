@@ -167,6 +167,7 @@ export default function GuardianSetupBasicPage() {
             <div className="setup-map">
               <KakaoMap
                 currentPosition={setup.homePosition}
+                currentMarkerTitle=""
                 ariaLabel="검색해 선택한 집 위치를 표시한 카카오 지도"
               />
             </div>

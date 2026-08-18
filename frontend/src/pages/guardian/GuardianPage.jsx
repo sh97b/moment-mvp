@@ -340,7 +340,7 @@ export default function GuardianPage({
             <h2 id="location-title">현재 위치 및 이동 경로</h2>
             <time dateTime={frame.timestamp}>{formatClock(frame.timestamp)} 기준</time>
           </div>
-          <KakaoMap currentPosition={currentPosition} path={path} />
+          <KakaoMap currentPosition={currentPosition} path={path} currentMarkerTitle="" />
         </section>
 
         <section className="summary-grid" aria-label="현재 이동 요약">

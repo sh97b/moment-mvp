@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import GuardianSetupHeader from '../../components/GuardianSetupHeader.jsx'
+import KakaoMap from '../../components/KakaoMap.jsx'
 import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
 import { searchKakaoLocations } from '../../utils/kakaoLocationSearch.js'
 
-const MAX_PLACE_DISTANCE_KM = 30
+const MAX_PLACE_DISTANCE_KM = 5
 const EARTH_RADIUS_KM = 6371
 
 function isCoordinate(position) {
@@ -209,7 +210,7 @@ export default function GuardianSetupPlacesPage() {
         <div className="setup-form-content">
           <div className="setup-section-heading">
             <h2>자주 방문하는 주요 장소</h2>
-            <p>병원, 복지관, 공원처럼 평소 자주 가는 집 반경 30km 이내의 장소를 등록해 주세요.</p>
+            <p>병원, 복지관, 공원처럼 평소 자주 가는 집 반경 5km 이내의 장소를 등록해 주세요.</p>
           </div>
 
           <div className="place-list">
@@ -308,6 +309,26 @@ export default function GuardianSetupPlacesPage() {
           </div>
 
           <button className="add-place" type="button" onClick={addPlace}>＋ 장소 추가</button>
+
+          <div className="setup-map setup-place-map" aria-label="집과 주요 장소 위치 지도">
+            <KakaoMap
+              currentPosition={setup.homePosition}
+              currentMarkerTitle=""
+              markers={[
+                ...(isCoordinate(setup.homePosition)
+                  ? [{ position: setup.homePosition, color: '#3b82f6', title: '집' }]
+                  : []),
+                ...((setup.placeLocations ?? [])
+                  .filter((location) => isCoordinate(location))
+                  .map((location) => ({
+                    position: location,
+                    color: '#22c55e',
+                    title: '주요장소',
+                  }))),
+              ]}
+              ariaLabel="집과 주요 장소를 표시한 카카오 지도"
+            />
+          </div>
         </div>
 
         <button className="setup-primary-action" type="submit">다음 단계</button>
