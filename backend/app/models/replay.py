@@ -1,3 +1,5 @@
+"""Replay API의 내부 입력 모델과 공개 응답 계약을 정의한다."""
+
 from datetime import datetime
 from math import isfinite
 
@@ -24,6 +26,8 @@ class Alert(BaseModel):
 
 
 class SafetyFeatures(BaseModel):
+    """Safety Loop 계산용 내부 feature로, 향후 모델 feature 확장을 허용한다."""
+
     model_config = ConfigDict(extra="allow")
 
     turn_count: int = 0
@@ -52,7 +56,7 @@ class SafetyFeatures(BaseModel):
 
 
 class FrameFeatures(BaseModel):
-    """Public feature fields fixed by docs/api-contract.md."""
+    """docs/api-contract.md에 고정된 공개 feature만 노출한다."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -63,6 +67,8 @@ class FrameFeatures(BaseModel):
 
 
 class ReplayFrame(BaseModel):
+    """프론트엔드가 한 시점씩 재생하는 검증 완료 frame."""
+
     model_config = ConfigDict(extra="forbid")
 
     timestamp: datetime
@@ -112,6 +118,8 @@ class ReplayFrame(BaseModel):
 
 
 class ReplayResponse(BaseModel):
+    """프론트 타이머가 한 번에 받는 전체 시나리오 응답."""
+
     model_config = ConfigDict(extra="forbid")
 
     scenario_id: str

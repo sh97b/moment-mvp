@@ -1,3 +1,5 @@
+"""MOMENT FastAPI 진입점과 공개 API 라우트를 구성한다."""
+
 import os
 from urllib.parse import urlsplit
 
@@ -16,6 +18,7 @@ from backend.app.services.scenario_loader import (
 )
 
 
+# 환경변수가 비었거나 잘못돼도 로컬 프론트 시연은 동작하도록 유지한다.
 DEFAULT_CORS_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 
@@ -55,6 +58,7 @@ loader = ScenarioLoader()
 replay_service = ReplayService(loader=loader)
 
 
+# 예상 가능한 데이터 오류는 내부 경로나 스택 트레이스 없이 제어된 JSON으로 반환한다.
 @app.exception_handler(ScenarioDataError)
 async def scenario_data_error_handler(
     _request: Request, exc: ScenarioDataError
@@ -87,6 +91,7 @@ def scenarios() -> ScenarioListResponse:
 
 @app.get("/api/replay/{scenario_id}", response_model=ReplayResponse)
 def replay(scenario_id: str) -> ReplayResponse:
+    """전체 시나리오를 시간순으로 계산해 프론트 타이머용 배열로 반환한다."""
     try:
         return replay_service.build_replay(scenario_id)
     except ScenarioNotFoundError as exc:

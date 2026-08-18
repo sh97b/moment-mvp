@@ -1,3 +1,5 @@
+"""AI 신호와 이동 feature를 합쳐 설명 가능한 위험 단계 전이를 계산한다."""
+
 from dataclasses import dataclass
 from math import isfinite
 from typing import Any
@@ -7,6 +9,8 @@ from backend.app.core.config import SAFETY_THRESHOLDS, SafetyThresholds
 
 @dataclass(frozen=True)
 class SafetyState:
+    """연속 이상·복귀 frame 수를 보존해 단계가 매 frame 흔들리지 않게 한다."""
+
     risk_level: int = 0
     abnormal_frames: int = 0
     recovery_frames: int = 0
@@ -42,7 +46,11 @@ def evaluate_safety(
     model_is_anomaly: Any = None,
     thresholds: SafetyThresholds = SAFETY_THRESHOLDS,
 ) -> SafetyDecision:
-    """Return one deterministic transition without retaining cross-request state."""
+    """이전 상태와 현재 frame만으로 하나의 결정적 전이를 계산한다.
+
+    서비스 전역 상태를 사용하지 않으므로 동일 replay를 반복 호출해도 이전 요청의
+    결과가 남지 않는다. 누락되거나 비정상인 숫자는 안전한 기본값으로 처리한다.
+    """
     deviation_value = features.get("deviation_m")
     if deviation_value is None:
         deviation_value = features.get("distance_from_route_m", 0.0)
@@ -71,7 +79,7 @@ def evaluate_safety(
     if model_signal:
         reasons.append("이동 패턴의 이상 점수가 기준을 넘었습니다.")
 
-    # When model output is absent or invalid, derive a bounded UI score from rules.
+    # AI 점수가 없거나 잘못되면 실제로 감지된 규칙 신호로 0~1 점수를 만든다.
     if score is None:
         rule_weights = (
             (0.35 if deviation >= thresholds.route_deviation_m else 0.0)
@@ -88,6 +96,7 @@ def evaluate_safety(
     ) and not model_signal and abnormal_count == 0
 
     if recovering and previous.risk_level > 0:
+        # 한 frame 복귀만으로 즉시 낮추지 않고 연속 복귀가 확인될 때 한 단계 내린다.
         recovery_frames = previous.recovery_frames + 1
         risk_level = previous.risk_level
         if recovery_frames >= thresholds.recovery_frames:
@@ -97,6 +106,7 @@ def evaluate_safety(
         return SafetyDecision(state, score, ["평소 경로로 복귀하는 흐름이 확인되었습니다."])
 
     if abnormal_count:
+        # 최초 신호는 1단계까지만 허용하고, 지속성과 근거 개수에 따라 순차 상승한다.
         streak = previous.abnormal_frames + 1
         if previous.risk_level == 0:
             level = 1
@@ -113,5 +123,5 @@ def evaluate_safety(
             level = previous.risk_level
         return SafetyDecision(SafetyState(level, streak, 0), score, reasons)
 
-    # Isolated coordinate noise neither raises nor abruptly drops the level.
+    # 경미한 좌표 노이즈만으로 단계를 올리거나 갑자기 낮추지 않는다.
     return SafetyDecision(SafetyState(previous.risk_level, 0, 0), score, [])

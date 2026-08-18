@@ -1,9 +1,11 @@
+"""Safety Loop에서 공통으로 사용하는 조정 가능한 데모 임계값."""
+
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class SafetyThresholds:
-    """Demo defaults; tune with synthetic evaluation data, not as clinical cutoffs."""
+    """합성 데이터 평가로 조정할 데모 기본값이며 의료적 기준이 아니다."""
 
     route_deviation_m: float = 80.0
     recovered_route_m: float = 40.0

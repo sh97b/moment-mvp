@@ -1,3 +1,5 @@
+"""합성 시나리오 JSON의 위치 결정, 파싱, 검증과 시간순 정렬을 담당한다."""
+
 import json
 from math import isfinite
 from datetime import datetime
@@ -54,6 +56,7 @@ class RawFrame(BaseModel):
         return value
 
 
+# 공개 scenario ID와 파일명을 한곳에서 관리해 라우터가 경로를 알지 않게 한다.
 SCENARIOS: dict[str, tuple[str, str, str]] = {
     "normal": ("normal.json", "정상 이동", "평소 경로를 따라 목적지에 다녀옵니다."),
     "temporary_return": (
@@ -70,6 +73,8 @@ SCENARIOS: dict[str, tuple[str, str, str]] = {
 
 
 class ScenarioLoader:
+    """실제 합성 데이터를 우선하고 없을 때만 내장 데모 fixture를 사용한다."""
+
     def __init__(self, data_dir: Path | None = None, fallback_dir: Path | None = None):
         repository_root = Path(__file__).resolve().parents[3]
         self.data_dir = data_dir or repository_root / "data" / "synthetic"
@@ -83,6 +88,7 @@ class ScenarioLoader:
         ]
 
     def load(self, scenario_id: str) -> list[RawFrame]:
+        """시나리오를 검증한 뒤 timestamp 오름차순으로 반환한다."""
         metadata = SCENARIOS.get(scenario_id)
         if metadata is None:
             raise ScenarioNotFoundError
@@ -111,6 +117,7 @@ class ScenarioLoader:
         return sorted(frames, key=lambda frame: frame.timestamp)
 
     def _resolve_path(self, filename: str) -> Path | None:
+        # 데이터팀 파일이 추가되면 백엔드 수정 없이 fixture보다 먼저 선택된다.
         primary = self.data_dir / filename
         if primary.is_file():
             return primary

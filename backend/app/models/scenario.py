@@ -1,3 +1,5 @@
+"""시나리오 목록 API의 공개 응답 모델."""
+
 from pydantic import BaseModel, ConfigDict
 
 
