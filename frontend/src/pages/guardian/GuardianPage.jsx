@@ -53,8 +53,8 @@ function formatDistance(distance) {
 
 function formatDistanceDelta(delta) {
   if (!Number.isFinite(delta)) return '변화 데이터 없음'
-  if (delta === 0) return '직전 frame과 동일'
-  return `직전 frame보다 ${Math.abs(Math.round(delta))}m ${delta > 0 ? '증가' : '감소'}`
+  if (delta === 0) return '직전 위치 기록과 동일'
+  return `직전 위치 기록보다 ${Math.abs(Math.round(delta))}m ${delta > 0 ? '증가' : '감소'}`
 }
 
 export default function GuardianPage({
@@ -170,7 +170,7 @@ export default function GuardianPage({
           <article className="dashboard-card summary-card">
             <p>현재 외출 시간</p>
             <strong>{formatElapsed(firstFrame.timestamp, frame.timestamp)}</strong>
-            <span>첫 frame부터 계산</span>
+            <span>이동 시작 시각 기준</span>
           </article>
           <article className="dashboard-card summary-card">
             <p>집과의 거리</p>
