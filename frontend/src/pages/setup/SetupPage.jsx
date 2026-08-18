@@ -25,7 +25,7 @@ export default function SetupPage() {
             <span className="role-arrow" aria-hidden="true">→</span>
           </Link>
 
-          <Link className="role-button senior-role" to="/senior">
+          <Link className="role-button senior-role" to="/senior/enter">
             <span className="role-icon" aria-hidden="true">고</span>
             <span className="role-button-copy">
               <strong>고령자</strong>

@@ -584,7 +584,63 @@ textarea {
 .replay-state-page p { margin: 12px 0 0; color: #737d90; line-height: 1.65; }
 .replay-state-page button { margin-top: 24px; padding: 14px 20px; color: #fff; font-weight: 800; background: #3f5fa9; border: 0; border-radius: 14px; }
 
-.guardian-page {
+.senior-entry-card {
+  display: grid;
+  gap: 14px;
+}
+
+.senior-entry-label {
+  margin: 0;
+  color: #3f5fa9;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.senior-entry-copy {
+  margin: 0;
+  font-size: 15px;
+}
+
+.senior-entry-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.senior-entry-form input {
+  width: 100%;
+  min-height: 72px;
+  padding: 0 18px;
+  color: #17233a;
+  font-size: 26px;
+  letter-spacing: 0.32em;
+  text-align: center;
+  background: #f4f7ff;
+  border: 1px solid #dbe4fb;
+  border-radius: 18px;
+  outline: none;
+}
+
+.senior-entry-form input:focus {
+  border-color: #3f5fa9;
+  box-shadow: 0 0 0 4px rgb(63 95 169 / 12%);
+}
+
+.senior-entry-form button {
+  margin-top: 0;
+}
+
+.senior-entry-error {
+  margin: 0;
+  color: #b83242;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.guardian-page,
+.senior-page {
   --risk-color: #2f8f4a;
   --risk-hero-color: #3f7a5b;
   --risk-page-color: #f2f8f4;
@@ -601,7 +657,8 @@ textarea {
   box-shadow: 0 0 36px rgb(29 48 86 / 12%);
 }
 
-.guardian-page.risk-level-1 {
+.guardian-page.risk-level-1,
+.senior-page.risk-level-1 {
   --risk-color: #956200;
   --risk-hero-color: #a66c00;
   --risk-page-color: #fbf7ec;
@@ -612,7 +669,8 @@ textarea {
   --risk-shadow-color: rgb(149 98 0 / 11%);
 }
 
-.guardian-page.risk-level-2 {
+.guardian-page.risk-level-2,
+.senior-page.risk-level-2 {
   --risk-color: #be4e10;
   --risk-hero-color: #c75a18;
   --risk-page-color: #fbf4ef;
@@ -623,7 +681,8 @@ textarea {
   --risk-shadow-color: rgb(190 78 16 / 11%);
 }
 
-.guardian-page.risk-level-3 {
+.guardian-page.risk-level-3,
+.senior-page.risk-level-3 {
   --risk-color: #b83242;
   --risk-hero-color: #b63847;
   --risk-page-color: #fbf2f3;
@@ -646,6 +705,31 @@ textarea {
 .guardian-brand,
 .live-badge,
 .risk-badge { display: flex; align-items: center; }
+
+.guardian-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 10px 12px;
+  color: rgb(255 255 255 / 80%);
+  background: rgb(255 255 255 / 12%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 12px;
+}
+
+.guardian-code-row span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guardian-code-row strong {
+  font-size: 18px;
+  letter-spacing: 0.18em;
+}
 
 .guardian-brand-row,
 .guardian-person-row { justify-content: space-between; gap: 20px; }
@@ -702,6 +786,73 @@ textarea {
   background: var(--risk-page-color);
   transition: background-color 180ms ease;
 }
+
+.senior-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  min-height: calc(100vh - 212px);
+  padding-top: 10px;
+}
+
+.senior-hero {
+  padding-top: 52px;
+}
+
+.senior-person-row {
+  margin-top: 18px;
+  align-items: center;
+}
+
+.senior-scenario-panel {
+  display: grid;
+  gap: 10px;
+  padding: 16px 16px 18px;
+  background: rgb(255 255 255 / 70%);
+  border: 1px solid var(--risk-border-color);
+  border-radius: 20px;
+  box-shadow: 0 4px 14px var(--risk-shadow-color);
+}
+
+.senior-scenario-label {
+  color: #7d8697;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.senior-scenario-tabs {
+  display: grid;
+  gap: 8px;
+}
+
+.senior-scenario-tabs button {
+  min-height: 42px;
+  padding: 8px 10px;
+  color: #6f7787;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--risk-tab-color);
+  border: 0;
+  border-radius: 12px;
+}
+
+.senior-scenario-tabs button.active {
+  color: var(--risk-color);
+  background: #fff;
+  box-shadow: 0 1px 5px rgb(32 48 78 / 12%);
+}
+
+.senior-map-card {
+  padding: 18px 18px 20px;
+}
+
+.senior-card-heading {
+  margin-bottom: 14px;
+}
+
+.senior-map-card .guardian-map { height: 560px; }
 
 .scenario-panel {
   display: none;
@@ -1035,6 +1186,23 @@ textarea {
 
   .guardian-content > .scenario-panel .replay-controls button {
     flex: 1;
+  }
+
+  .senior-content > .senior-scenario-panel {
+    position: fixed;
+    top: 24px;
+    right: calc(50% + 310px);
+    z-index: 10;
+    display: grid;
+    width: min(340px, calc(50vw - 330px));
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .senior-content > .senior-scenario-panel {
+    display: none;
   }
 }
 

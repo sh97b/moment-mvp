@@ -203,6 +203,7 @@ export default function KakaoMap({
   currentPosition = null,
   path = EMPTY_PATH,
   ariaLabel = '현재 frame 위치와 지금까지의 합성 이동 경로를 표시한 카카오 지도',
+  interactive = true,
 }) {
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
@@ -242,13 +243,26 @@ export default function KakaoMap({
         const center = new window.kakao.maps.LatLng(initialPosition.lat, initialPosition.lng)
         const map = new window.kakao.maps.Map(mapContainerRef.current, {
           center,
-          level: 4,
+          level: interactive ? 4 : 3,
         })
-        map.setZoomable(true)
-        map.setMinLevel(KAKAO_MIN_LEVEL)
-        fitMapToRoute(map, latestPathRef.current, latestPositionRef.current)
-        routeFitLevelRef.current = map.getLevel()
-        lastValidViewRef.current = getMapView(map)
+        map.setZoomable(interactive)
+        map.setDraggable(interactive)
+        map.setKeyboardShortcuts(interactive)
+        if (!interactive) {
+          map.setMinLevel(3)
+          map.setMaxLevel(3)
+        } else {
+          map.setMinLevel(KAKAO_MIN_LEVEL)
+        }
+        if (interactive) {
+          fitMapToRoute(map, latestPathRef.current, latestPositionRef.current)
+          routeFitLevelRef.current = map.getLevel()
+          lastValidViewRef.current = getMapView(map)
+        } else {
+          map.setCenter(center)
+          routeFitLevelRef.current = map.getLevel()
+          lastValidViewRef.current = getMapView(map)
+        }
         mapInstance = map
         handleViewportChange = () => {
           keepRouteInView(
@@ -316,7 +330,7 @@ export default function KakaoMap({
       polylineRef.current = null
       mapRef.current = null
     }
-  }, [appKey])
+  }, [appKey, interactive])
 
   useEffect(() => {
     const map = mapRef.current
@@ -345,13 +359,27 @@ export default function KakaoMap({
       .filter(isCoordinate)
       .map(({ lat, lng }) => new window.kakao.maps.LatLng(lat, lng))
 
-    constraintSuspendedRef.current = true
-    fitMapToRoute(map, path, currentPosition)
-    routeFitLevelRef.current = map.getLevel()
-    lastValidViewRef.current = getMapView(map)
-    window.requestAnimationFrame(() => {
-      constraintSuspendedRef.current = false
-    })
+    if (!interactive && isCoordinate(currentPosition)) {
+      const focusedCenter = new window.kakao.maps.LatLng(currentPosition.lat, currentPosition.lng)
+      map.setCenter(focusedCenter)
+      map.setLevel(3)
+      map.setMinLevel(3)
+      map.setMaxLevel(3)
+      constraintSuspendedRef.current = true
+      routeFitLevelRef.current = map.getLevel()
+      lastValidViewRef.current = getMapView(map)
+      window.requestAnimationFrame(() => {
+        constraintSuspendedRef.current = false
+      })
+    } else {
+      constraintSuspendedRef.current = true
+      fitMapToRoute(map, path, currentPosition)
+      routeFitLevelRef.current = map.getLevel()
+      lastValidViewRef.current = getMapView(map)
+      window.requestAnimationFrame(() => {
+        constraintSuspendedRef.current = false
+      })
+    }
 
     if (!polylineRef.current && linePath.length >= 2) {
       polylineRef.current = new window.kakao.maps.Polyline({
@@ -365,7 +393,7 @@ export default function KakaoMap({
     } else if (polylineRef.current) {
       polylineRef.current.setPath(linePath)
     }
-  }, [currentPosition, path, status])
+  }, [currentPosition, path, status, interactive])
 
   return (
     <div className="guardian-map-wrapper">

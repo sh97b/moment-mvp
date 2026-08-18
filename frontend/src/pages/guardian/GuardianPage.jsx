@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import KakaoMap from '../../components/KakaoMap.jsx'
 import { useGuardianSetup } from '../../context/GuardianSetupContext.jsx'
+import { readActiveGuardianProfile } from '../../utils/guardianProfile.js'
 
 const riskStages = {
   0: {
@@ -133,7 +134,9 @@ export default function GuardianPage({
   const effectiveRiskLevel = manualNormalLog ? 0 : riskLevel
   const stage = riskStages[effectiveRiskLevel] ?? riskStages[0]
   const { setup } = useGuardianSetup()
-  const personName = setup.personName.trim() || '보호 대상자'
+  const activeProfile = readActiveGuardianProfile()
+  const personName = activeProfile?.name || setup.personName.trim() || '보호 대상자'
+  const guardianCode = activeProfile?.code || '코드 없음'
   const path = playedFrames.map(({ lat, lng }) => ({ lat, lng }))
   const currentPosition = { lat: frame.lat, lng: frame.lng }
   const replayFinished = currentFrameIndex === totalFrames - 1
@@ -187,6 +190,11 @@ export default function GuardianPage({
   return (
     <main className={`guardian-page risk-level-${effectiveRiskLevel}`}>
       <header className="guardian-hero">
+        <div className="guardian-code-row">
+          <span>등록 코드</span>
+          <strong>{guardianCode}</strong>
+        </div>
+
         <div className="guardian-brand-row">
           <div className="guardian-brand" aria-label="MOMENT">
             <span className="guardian-brand-mark">M</span>
