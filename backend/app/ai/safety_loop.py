@@ -7,12 +7,13 @@ from backend.app.ai.risk_engine import (
 )
 
 
-# 이상 상태가 몇 분 연속 지속되면
+# 이상 상태가 연속 몇 개 frame 동안 지속되면
 # 다음 단계로 상승시킬지 결정
 #
-# 현재 데이터는 1분 간격이므로
-# streak 3 = 약 3분 지속
-PERSIST_MINUTES = 3
+# 현재 데이터가 1분 간격이므로
+# 3 frames = 약 3분
+
+PERSIST_FRAMES = 3
 
 
 class SafetyLoop:
@@ -138,7 +139,7 @@ class SafetyLoop:
                 # 이상 행동이 일정 시간 지속
                 if (
                     self.abnormal_streak
-                    >= PERSIST_MINUTES
+                    >= PERSIST_FRAMES
                 ):
                     self.current_level = CAUTION
                     self.reset_streak()
@@ -165,7 +166,7 @@ class SafetyLoop:
                 # 이상 행동이 계속 지속되면 위험
                 if (
                     self.abnormal_streak
-                    >= PERSIST_MINUTES
+                    >= PERSIST_FRAMES
                 ):
                     self.current_level = DANGER
                     self.reset_streak()
