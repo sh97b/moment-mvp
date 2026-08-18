@@ -43,3 +43,25 @@ def test_parse_routine_text_handles_gemini_api_error(
         parser.parse_routine_text(
             "평일 오전에 산책을 합니다."
         )
+
+
+
+def test_parse_routine_text_handles_missing_api_key(
+        monkeypatch,
+    ):
+        def mock_client():
+            raise ValueError("API key missing")
+
+        monkeypatch.setattr(
+            parser.genai,
+            "Client",
+            mock_client,
+        )
+
+        with pytest.raises(
+            RuntimeError,
+            match="GEMINI_API_KEY",
+        ):
+            parser.parse_routine_text(
+                "평일 오전에 산책을 합니다."
+            )   
