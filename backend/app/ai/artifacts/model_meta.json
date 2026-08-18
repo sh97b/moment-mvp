@@ -1,0 +1,30 @@
+{
+  "features": [
+    "turn_10min",
+    "revisit_15min"
+  ],
+  "normal_feature_max": {
+    "turn_10min": 4,
+    "revisit_15min": 1
+  },
+  "anomaly_score_thresholds": {
+    "p90": 0.6153158405161346,
+    "p95": 0.6153158405161346,
+    "p99": 0.7533642593336676
+  },
+  "model_config": {
+    "n_estimators": 200,
+    "max_samples": "auto",
+    "contamination": "auto",
+    "random_state": 42
+  },
+  "library_versions": {
+    "scikit_learn": "1.9.0"
+  },
+  "training_info": {
+    "train_routes": 80,
+    "validation_routes": 20,
+    "train_rows": 2085,
+    "validation_rows": 522
+  }
+}
