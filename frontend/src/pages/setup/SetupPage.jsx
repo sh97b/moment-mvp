@@ -25,6 +25,15 @@ export default function SetupPage() {
             <span className="role-arrow" aria-hidden="true">→</span>
           </Link>
 
+          <Link className="role-button senior-role" to="/senior">
+            <span className="role-icon" aria-hidden="true">고</span>
+            <span className="role-button-copy">
+              <strong>고령자</strong>
+              <small>이동 안내 확인하기</small>
+            </span>
+            <span className="role-arrow" aria-hidden="true">→</span>
+          </Link>
+
         </nav>
       </section>
 

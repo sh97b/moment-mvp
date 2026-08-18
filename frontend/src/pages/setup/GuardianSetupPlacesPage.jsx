@@ -209,7 +209,7 @@ export default function GuardianSetupPlacesPage() {
         <div className="setup-form-content">
           <div className="setup-section-heading">
             <h2>자주 방문하는 주요 장소</h2>
-            <p>병원, 복지관, 공원처럼 평소 자주 가는 집 반경 30km 이내의 데모용 장소를 등록해 주세요.</p>
+            <p>병원, 복지관, 공원처럼 평소 자주 가는 집 반경 30km 이내의 장소를 등록해 주세요.</p>
           </div>
 
           <div className="place-list">
