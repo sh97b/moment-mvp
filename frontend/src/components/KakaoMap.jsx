@@ -202,12 +202,14 @@ export function loadKakaoMapsSdk(appKey) {
 export default function KakaoMap({
   currentPosition = null,
   path = EMPTY_PATH,
+  markers = EMPTY_PATH,
   ariaLabel = '현재 frame 위치와 지금까지의 합성 이동 경로를 표시한 카카오 지도',
   interactive = true,
 }) {
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
+  const markerRefsRef = useRef([])
   const polylineRef = useRef(null)
   const latestPositionRef = useRef(currentPosition)
   const latestPathRef = useRef(path)
@@ -325,8 +327,10 @@ export default function KakaoMap({
         )
       }
       markerRef.current?.setMap(null)
+      markerRefsRef.current.forEach((marker) => marker.setMap(null))
       polylineRef.current?.setMap(null)
       markerRef.current = null
+      markerRefsRef.current = []
       polylineRef.current = null
       mapRef.current = null
     }
@@ -335,6 +339,54 @@ export default function KakaoMap({
   useEffect(() => {
     const map = mapRef.current
     if (status !== 'ready' || !map || !window.kakao?.maps) return
+
+    const explicitMarkers = Array.isArray(markers)
+      ? markers.filter(({ position }) => isCoordinate(position))
+      : []
+
+    markerRefsRef.current.forEach((marker) => marker.setMap(null))
+    markerRefsRef.current = []
+
+    if (explicitMarkers.length > 0) {
+      markerRef.current?.setMap(null)
+      markerRef.current = null
+      markerRefsRef.current = explicitMarkers.map(({
+        position,
+        color = '#2d6cdf',
+        title,
+      }) => new window.kakao.maps.Marker({
+        map,
+        position: new window.kakao.maps.LatLng(position.lat, position.lng),
+        title,
+        image: new window.kakao.maps.MarkerImage(
+          `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+              <circle cx="11" cy="11" r="9" fill="${color}" stroke="#ffffff" stroke-width="3"/>
+            </svg>
+          `)}`,
+          new window.kakao.maps.Size(22, 22),
+          { offset: new window.kakao.maps.Point(11, 11) },
+        ),
+      }))
+
+      if (explicitMarkers.length === 1) {
+        const [{ position }] = explicitMarkers
+        map.setCenter(new window.kakao.maps.LatLng(position.lat, position.lng))
+      } else {
+        const bounds = new window.kakao.maps.LatLngBounds()
+        explicitMarkers.forEach(({ position }) => {
+          bounds.extend(new window.kakao.maps.LatLng(position.lat, position.lng))
+        })
+        map.setBounds(bounds, 36, 36, 36, 36)
+      }
+      constraintSuspendedRef.current = true
+      routeFitLevelRef.current = map.getLevel()
+      lastValidViewRef.current = getMapView(map)
+      window.requestAnimationFrame(() => {
+        constraintSuspendedRef.current = false
+      })
+      return
+    }
 
     if (isCoordinate(currentPosition)) {
       const markerPosition = new window.kakao.maps.LatLng(
@@ -393,7 +445,7 @@ export default function KakaoMap({
     } else if (polylineRef.current) {
       polylineRef.current.setPath(linePath)
     }
-  }, [currentPosition, path, status, interactive])
+  }, [currentPosition, path, markers, status, interactive])
 
   return (
     <div className="guardian-map-wrapper">
